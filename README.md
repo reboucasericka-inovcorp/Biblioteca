@@ -25,9 +25,9 @@ O projeto utiliza **Laravel Jetstream** para autenticação, com **Two-Factor Au
 
 ## Funcionalidades em Desenvolvimento
 
-- Gestão de Editoras
-- Gestão de Autores
-- Gestão de Livros
+- Gestão de Publishers
+- Gestão de Authors
+- Gestão de Books
 - Pesquisa, filtragem e ordenação de dados
 - Exportação de dados para Excel
 

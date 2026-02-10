@@ -15,8 +15,20 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <x-nav-link href="{{ route('books.index') }}" :active="request()->routeIs('books.*')">
+                        {{ __('Books') }}
+                    </x-nav-link>
+
+                    <x-nav-link href="{{ route('authors.index') }}" :active="request()->routeIs('authors.*')">
+                        {{ __('Authors') }}
+                    </x-nav-link>
+
+                    <x-nav-link href="{{ route('publishers.index') }}" :active="request()->routeIs('publishers.*')">
+                        {{ __('Publishers') }}
+                    </x-nav-link>
                 </div>
-            </div>
+            </div>            
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Teams Dropdown -->
