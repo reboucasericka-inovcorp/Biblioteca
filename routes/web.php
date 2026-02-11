@@ -10,11 +10,18 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $booksCount = \App\Models\Book::count();
+        $authorsCount = \App\Models\Author::count();
+        $publishersCount = \App\Models\Publisher::count();
+        $recentBooks = \App\Models\Book::with(['publisher', 'authors'])->latest()->take(5)->get();
+        
+        return view('dashboard', compact('booksCount', 'authorsCount', 'publishersCount', 'recentBooks'));
     })->name('dashboard');
 
     Route::get('/books', [BookController::class, 'index'])
         ->name('books.index');
+    Route::get('/books/export', [BookController::class, 'export'])
+        ->name('books.export');
 
     Route::get('/authors', [AuthorController::class, 'index'])
         ->name('authors.index');

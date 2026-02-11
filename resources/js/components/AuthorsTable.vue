@@ -1,14 +1,17 @@
 <template>
   <div>
-    <!-- Filtros -->
-    <div class="flex items-center gap-5 mb-4">
-      <input v-model="search" type="text" placeholder="Search by author name" class="border rounded px-9 h-10 w-72" >
-
-      <select v-model="sort" class="border rounded px-9 h-10 appearance-none bg-white" >
+    <!-- Barra de filtros -->
+    <div class="flex flex-wrap items-center gap-6 p-5 bg-gray-50 rounded-lg border border-gray-200 mb-6">
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Search by author name"
+        class="border border-gray-300 rounded-md px-9 h-10 w-72"
+      >
+      <select v-model="sort" class="border border-gray-300 rounded-md px-9 h-10 min-w-[120px] bg-white">
         <option value="name">Name</option>
       </select>
-
-      <select v-model="dir" class="border rounded px-9 h-10 appearance-none bg-white" >
+      <select v-model="dir" class="border border-gray-300 rounded-md px-9 h-10 min-w-[100px] bg-white">
         <option value="asc">ASC</option>
         <option value="desc">DESC</option>
       </select>

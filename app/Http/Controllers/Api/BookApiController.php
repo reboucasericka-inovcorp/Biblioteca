@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
+use App\Exports\BooksExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BookApiController extends Controller
 {
@@ -24,5 +26,14 @@ class BookApiController extends Controller
         $query->orderBy($sort, $dir);
 
         return $query->paginate(10);
+    }
+
+    public function export(Request $request)
+    {
+        $search = $request->get('search');
+        $sort = $request->get('sort', 'name');
+        $dir = $request->get('dir', 'asc');
+
+        return Excel::download(new BooksExport($search, $sort, $dir), 'books.xlsx');
     }
 }

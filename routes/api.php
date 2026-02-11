@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthorApiController;
 use App\Http\Controllers\Api\PublisherApiController;
 
 Route::get('/books', [BookApiController::class, 'index']);
+Route::get('/books/export', [BookApiController::class, 'export']);
 Route::get('/authors', [AuthorApiController::class, 'index']);
 Route::get('/publishers', [PublisherApiController::class, 'index']);
 
