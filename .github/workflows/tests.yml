@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
     branches:
+      - main
       - master
       - '*.x'
   pull_request:
@@ -31,7 +32,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_sqlite
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
           coverage: none
 
       - name: Install Composer dependencies
@@ -51,8 +52,26 @@ jobs:
       - name: Copy environment file
         run: cp .env.example .env
 
+      - name: Force testing environment
+        run: |
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env || echo "APP_ENV=testing" >> .env
+          sed -i 's/^APP_DEBUG=.*/APP_DEBUG=false/' .env || true
+
       - name: Generate app key
         run: php artisan key:generate
+
+      - name: Create SQLite database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Configure SQLite for tests
+        run: |
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
+
+      - name: Run migrations
+        run: php artisan migrate --force
 
       - name: Execute tests
         run: php artisan test
