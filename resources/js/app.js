@@ -8,5 +8,9 @@ const app = createApp({});
 app.component('books-table', BooksTable);
 app.component('authors-table', AuthorsTable);
 app.component('publishers-table', PublishersTable);
-app.mount('#app');
+
+const el = document.getElementById('app');
+if (el) {
+    app.mount('#app');
+}
 

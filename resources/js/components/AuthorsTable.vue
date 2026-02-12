@@ -18,18 +18,30 @@
     </div>
 
     <!-- Tabela -->
-    <table class="table-auto w-full border">
-      <thead>
-        <tr class="bg-gray-100">
-          <th class="p-2">Name</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="a in authors" :key="a.id">
-          <td class="p-2">{{ a.name }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table class="table-auto w-full border">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="p-3 text-left">Photo</th>
+            <th class="p-3 text-left">Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="a in authors" :key="a.id" class="hover:bg-gray-50">
+            <td class="p-3">
+              <img 
+                v-if="a.photo" 
+                :src="a.photo" 
+                :alt="a.name + ' photo'"
+                class="h-12 w-12 object-cover rounded-full"
+              />
+              <span v-else class="text-gray-400 text-sm">No photo</span>
+            </td>
+            <td class="p-3 font-medium">{{ a.name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
   </div>
 </template>
