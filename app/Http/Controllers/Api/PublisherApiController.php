@@ -24,6 +24,12 @@ class PublisherApiController extends Controller
 
         $query->orderBy($sort, $dir);
 
-        return $query->paginate(10);
+        $paginator = $query->paginate(10);
+        $paginator->getCollection()->transform(function ($publisher) {
+            $publisher->logo_url = $publisher->logo ? asset('storage/' . $publisher->logo) : null;
+            return $publisher;
+        });
+
+        return $paginator;
     }
 }

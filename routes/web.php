@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\PublisherController;
+use App\Http\Controllers\RequisitionController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -27,10 +28,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/books/export', [BookController::class, 'export'])
         ->name('books.export');
 
+    Route::middleware(['auth', 'role:Admin'])->group(function () {
+        Route::resource('books', BookController::class)->except(['index', 'show']);
+        Route::resource('authors', AuthorController::class)->except(['index']);
+        Route::resource('publishers', PublisherController::class)->except(['index']);
+    });
+
+    Route::get('/books/{book}', [BookController::class, 'show'])
+        ->name('books.show');
+
     Route::get('/authors', [AuthorController::class, 'index'])
         ->name('authors.index');
 
     Route::get('/publishers', [PublisherController::class, 'index'])
         ->name('publishers.index');
 
+    Route::get('/requisitions', [RequisitionController::class, 'index'])
+        ->name('requisitions.index');
 });

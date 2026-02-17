@@ -10,7 +10,7 @@
                 <div class="bg-white p-6 rounded shadow">
                     <p class="mb-4">Publishers Menu</p>
 
-                    <publishers-table></publishers-table>
+                    <publishers-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></publishers-table>
                 </div>
             </div>
         </div>

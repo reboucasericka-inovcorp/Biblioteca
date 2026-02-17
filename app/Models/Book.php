@@ -17,11 +17,9 @@ class Book extends Model
         'bibliography',
         'cover',
     ];
-
     protected $casts = [
         'price' => 'decimal:2',
     ];
-
     // Criptografar campos sensíveis
     protected function bibliography(): Attribute
     {
@@ -38,14 +36,25 @@ class Book extends Model
             set: fn ($value) => $value ? encrypt($value) : null,
         );
     }
-
     public function publisher()
     {
         return $this->belongsTo(Publisher::class);
     }
-
     public function authors()
     {
         return $this->belongsToMany(Author::class);
     }
+    public function requisitions()
+    {
+        return $this->hasMany(Requisition::class);
+    }  
+    public function isAvailable(): bool
+    {
+    return ! $this->requisitions()
+        ->where('status', Requisition::STATUS_ACTIVE)
+        ->exists();
+    }
+    
+
+
 }

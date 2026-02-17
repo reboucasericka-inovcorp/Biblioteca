@@ -11,7 +11,7 @@
                     <p>Books Menu </p>
 
                     {{-- Vue entra aqui --}}
-                    <books-table></books-table>
+                    <books-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></books-table>
                 </div>
             </div>
         </div>
