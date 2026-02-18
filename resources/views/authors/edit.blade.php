@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-night-blue leading-tight">
             Editar Autor
         </h2>
     </x-slot>
@@ -22,7 +22,7 @@
                         <div class="mt-4">
                             <x-label for="photo" value="Foto" />
                             @if($author->photo)
-                                <p class="text-sm text-gray-500 mt-1">Foto atual:</p>
+                                <p class="text-sm text-night-blue/70 mt-1">Foto atual:</p>
                                 <img src="{{ asset('storage/' . $author->photo) }}" alt="Foto" class="mt-2 h-32 object-cover rounded">
                             @endif
                             <input id="photo" type="file" name="photo" accept="image/*" class="block mt-1 w-full" onchange="previewImage(this, 'photo-preview')">
@@ -30,7 +30,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('authors.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <a href="{{ route('authors.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-steel-gray rounded-md font-semibold text-xs text-night-blue uppercase tracking-widest shadow-sm hover:bg-steel-gray/20 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:ring-offset-2 transition ease-in-out duration-150">
                                 Cancelar
                             </a>
                             <x-button type="submit">Atualizar</x-button>

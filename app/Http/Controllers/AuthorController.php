@@ -72,6 +72,7 @@ class AuthorController extends Controller
 
     public function destroy(Author $author)
     {
+        $author->books()->detach();
         $rawPhoto = $author->getRawOriginal('photo');
         if ($rawPhoto) {
             Storage::disk('public')->delete($rawPhoto);
@@ -79,7 +80,7 @@ class AuthorController extends Controller
         $author->delete();
 
         return redirect()->route('authors.index')
-            ->with('flash.banner', 'Author deleted successfully.')
+            ->with('flash.banner', 'Autor eliminado com sucesso.')
             ->with('flash.bannerStyle', 'success');
     }
 }

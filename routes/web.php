@@ -5,6 +5,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -32,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('books', BookController::class)->except(['index', 'show']);
         Route::resource('authors', AuthorController::class)->except(['index']);
         Route::resource('publishers', PublisherController::class)->except(['index']);
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     });
 
     Route::get('/books/{book}', [BookController::class, 'show'])

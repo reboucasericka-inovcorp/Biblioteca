@@ -1,17 +1,18 @@
 <template>
-  <div class="bg-white p-6 rounded shadow">
-    <h3 class="text-2xl font-bold mb-2">{{ book.name }}</h3>
+  <div class="card bg-base-100 shadow">
+    <div class="card-body p-6 space-y-4">
+    <h3 class="text-2xl font-bold text-base-content">{{ book.name }}</h3>
 
     <img
       v-if="book.cover_url"
       :src="book.cover_url"
-      class="w-40 mb-4 rounded shadow"
+      class="w-40 rounded shadow"
       :alt="book.name"
     />
 
-    <p class="mb-4">{{ book.bibliography }}</p>
+    <p class="text-sm text-base-content">{{ book.bibliography }}</p>
 
-    <div class="mb-6">
+    <div>
       <button
         v-if="book.is_available"
         @click="requisition"
@@ -25,18 +26,19 @@
       </span>
     </div>
 
-    <h4 class="text-lg font-semibold mb-2">
+    <h4 class="text-lg font-semibold text-base-content">
       Histórico de Requisições
     </h4>
 
     <div
       v-for="req in book.requisitions"
       :key="req.id"
-      class="text-sm border-b py-2"
+      class="text-sm text-base-content border-b border-base-300 py-4"
     >
       <strong>#{{ req.sequential_number }}</strong>
       — {{ req.user?.name ?? '-' }}
       — {{ req.status }}
+    </div>
     </div>
   </div>
 </template>

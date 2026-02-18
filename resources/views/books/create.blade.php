@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-night-blue leading-tight">
             Criar Livro
         </h2>
     </x-slot>
@@ -30,7 +30,7 @@
 
                         <div class="mt-4">
                             <x-label for="publisher_id" value="Editora" />
-                            <select id="publisher_id" name="publisher_id" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                            <select id="publisher_id" name="publisher_id" class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-electric-blue" required>
                                 <option value="">Selecione...</option>
                                 @foreach($publishers as $p)
                                     <option value="{{ $p->id }}" {{ old('publisher_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -39,8 +39,18 @@
                         </div>
 
                         <div class="mt-4">
+                            <x-label for="authors" value="Autores" />
+                            <select id="authors" name="authors[]" multiple class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-electric-blue min-h-[120px]">
+                                @foreach($authors as $a)
+                                    <option value="{{ $a->id }}" {{ in_array($a->id, old('authors', [])) ? 'selected' : '' }}>{{ $a->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-sm text-night-blue/70 mt-1">Segure Ctrl (ou Cmd) para selecionar vários autores.</p>
+                        </div>
+
+                        <div class="mt-4">
                             <x-label for="bibliography" value="Bibliografia" />
-                            <textarea id="bibliography" name="bibliography" rows="4" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('bibliography') }}</textarea>
+                            <textarea id="bibliography" name="bibliography" rows="4" class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-electric-blue">{{ old('bibliography') }}</textarea>
                         </div>
 
                         <div class="mt-4">
@@ -50,7 +60,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('books.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <a href="{{ route('books.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-steel-gray rounded-md font-semibold text-xs text-night-blue uppercase tracking-widest shadow-sm hover:bg-steel-gray/20 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:ring-offset-2 transition ease-in-out duration-150">
                                 Cancelar
                             </a>
                             <x-button type="submit">Criar</x-button>

@@ -9,4 +9,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new SendRequisitionReminder)->daily();
+// Reminder: envia email a quem tem devolução amanhã.
+// Em produção: adicionar ao crontab: * * * * * cd /path && php artisan schedule:run >> /dev/null 2>&1
+Schedule::job(new SendRequisitionReminder)->dailyAt('09:00');

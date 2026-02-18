@@ -41,11 +41,14 @@ class RequisitionApiController extends Controller
             $query->where('user_id', $user->id);
         }
 
+        $active = (clone $query)->where('status', Requisition::STATUS_ACTIVE)->count();
+        $last30Days = (clone $query)->where('request_date', '>=', now()->subDays(30))->count();
+        $deliveredToday = (clone $query)->whereDate('return_date', today())->count();
+
         return response()->json([
-            'total' => (clone $query)->count(),
-            'active' => (clone $query)->where('status', Requisition::STATUS_ACTIVE)->count(),
-            'returned' => (clone $query)->where('status', Requisition::STATUS_RETURNED)->count(),
-            'late' => (clone $query)->where('status', Requisition::STATUS_LATE)->count(),
+            'active' => $active,
+            'last_30_days' => $last30Days,
+            'delivered_today' => $deliveredToday,
         ]);
     }
 }

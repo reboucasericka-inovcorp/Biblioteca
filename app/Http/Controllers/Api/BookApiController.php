@@ -23,12 +23,23 @@ class BookApiController extends Controller
             });
         }
 
-        // 🧭 Sorting
-        $sort = $request->get('sort', 'name');
-        $dir  = $request->get('dir', 'asc');
+        // 📂 Type (recent = últimos, tech = categoria tecnologia)
+        $type = $request->get('type');
+        if ($type === 'tech') {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%tecnologia%')
+                  ->orWhere('name', 'like', '%programação%')
+                  ->orWhereHas('authors', fn ($aq) => $aq->where('name', 'like', '%tecnologia%'));
+            });
+        }
+
+        // 🧭 Sorting (recent usa created_at por defeito)
+        $sort = $request->get('sort', $type === 'recent' ? 'created_at' : 'name');
+        $dir  = $request->get('dir', $type === 'recent' ? 'desc' : 'asc');
         $query->orderBy($sort, $dir);
 
-        $paginator = $query->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        $paginator = $query->paginate((int) $perPage);
         $paginator->getCollection()->transform(function ($book) {
             $book->is_available = $book->isAvailable();
             $book->cover_url = $book->cover ? asset('storage/' . $book->cover) : null;

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="text-center mb-8">
-      <h2 class="text-2xl font-semibold text-slate-800 mb-6">
+      <h2 class="text-2xl font-semibold text-night-blue mb-6">
         Pesquisar no Catálogo
       </h2>
       <input
@@ -12,22 +12,22 @@
       />
     </div>
 
-    <h2 class="text-2xl font-semibold text-slate-800 mb-6">
+    <h2 class="text-2xl font-semibold text-night-blue mb-6">
       Últimos Livros Adicionados
     </h2>
 
     <div class="overflow-x-auto bg-white rounded-lg shadow">
       <table class="table-auto w-full">
         <thead>
-          <tr class="bg-slate-100 border-b border-slate-200">
-            <th class="p-4 text-left text-slate-700">Capa</th>
-            <th class="p-4 text-left text-slate-700">Nome</th>
-            <th class="p-4 text-left text-slate-700">Autores</th>
-            <th class="p-4 text-left text-slate-700">Disponibilidade</th>
+          <tr class="bg-steel-gray/30 border-b border-steel-gray">
+            <th class="p-4 text-left text-night-blue">Capa</th>
+            <th class="p-4 text-left text-night-blue">Nome</th>
+            <th class="p-4 text-left text-night-blue">Autores</th>
+            <th class="p-4 text-left text-night-blue">Disponibilidade</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="b in books" :key="b.id" class="border-b border-slate-100 hover:bg-slate-50">
+          <tr v-for="b in books" :key="b.id" class="border-b border-steel-gray/50 hover:bg-steel-gray/20">
             <td class="p-4">
               <img
                 v-if="b.cover_url"
@@ -35,17 +35,17 @@
                 :alt="b.name"
                 class="h-16 w-12 object-cover rounded"
               />
-              <span v-else class="text-slate-400 text-sm">—</span>
+              <span v-else class="text-night-blue/60 text-sm">—</span>
             </td>
-            <td class="p-4 font-medium text-slate-800">
-              <a v-if="isLogged" :href="`/books/${b.id}`" class="text-blue-600 hover:underline">{{ b.name }}</a>
-              <span v-else class="text-slate-600">{{ b.name }}</span>
+            <td class="p-4 font-medium text-night-blue">
+              <a v-if="isLogged" :href="`/books/${b.id}`" class="text-electric-blue hover:underline">{{ b.name }}</a>
+              <span v-else class="text-night-blue/70">{{ b.name }}</span>
             </td>
-            <td class="p-4 text-slate-600 text-sm">
+            <td class="p-4 text-night-blue/70 text-sm">
               <span v-if="b.authors?.length">
                 {{ b.authors.map(a => a.name).join(', ') }}
               </span>
-              <span v-else class="text-slate-400">—</span>
+              <span v-else class="text-night-blue/60">—</span>
             </td>
             <td class="p-4">
               <button
@@ -71,7 +71,7 @@
             </td>
           </tr>
           <tr v-if="books.length === 0">
-            <td colspan="4" class="p-8 text-center text-slate-500">
+            <td colspan="4" class="p-8 text-center text-night-blue/70">
               Nenhum livro encontrado.
             </td>
           </tr>

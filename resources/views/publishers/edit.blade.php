@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-night-blue leading-tight">
             Editar Editora
         </h2>
     </x-slot>
@@ -21,13 +21,13 @@
 
                         <div class="mt-4">
                             <x-label for="notes" value="Notas" />
-                            <textarea id="notes" name="notes" rows="4" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('notes', $publisher->notes) }}</textarea>
+                            <textarea id="notes" name="notes" rows="4" class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-indigo-500">{{ old('notes', $publisher->notes) }}</textarea>
                         </div>
 
                         <div class="mt-4">
                             <x-label for="logo" value="Logo" />
                             @if($publisher->logo)
-                                <p class="text-sm text-gray-500 mt-1">Logo atual:</p>
+                                <p class="text-sm text-night-blue/70 mt-1">Logo atual:</p>
                                 <img src="{{ asset('storage/' . $publisher->logo) }}" alt="Logo" class="mt-2 h-32 object-contain rounded">
                             @endif
                             <input id="logo" type="file" name="logo" accept="image/*" class="block mt-1 w-full" onchange="previewImage(this, 'logo-preview')">
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('publishers.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <a href="{{ route('publishers.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-steel-gray rounded-md font-semibold text-xs text-night-blue uppercase tracking-widest shadow-sm hover:bg-steel-gray/20 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:ring-offset-2 transition ease-in-out duration-150">
                                 Cancelar
                             </a>
                             <x-button type="submit">Atualizar</x-button>

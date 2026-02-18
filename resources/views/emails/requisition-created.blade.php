@@ -8,6 +8,10 @@ A sua requisição foi criada com sucesso.
 
 ---
 
+@if($requisition->book->cover)
+<img src="{{ url('storage/'.$requisition->book->cover) }}" width="120">
+@endif
+
 **Número:** {{ $requisition->sequential_number }}  
 **Livro:** {{ $requisition->book->name }}  
 **Data da Requisição:** {{ $requisition->request_date->format('d/m/Y') }}  

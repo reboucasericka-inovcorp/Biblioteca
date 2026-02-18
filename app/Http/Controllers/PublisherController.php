@@ -74,13 +74,28 @@ class PublisherController extends Controller
 
     public function destroy(Publisher $publisher)
     {
+        $books = $publisher->books;
+        foreach ($books as $book) {
+            if ($book->requisitions()->exists()) {
+                return redirect()->back()
+                    ->with('flash.banner', 'Não é possível eliminar uma editora com livros que têm histórico de requisições.')
+                    ->with('flash.bannerStyle', 'danger');
+            }
+        }
+        foreach ($books as $book) {
+            $book->authors()->detach();
+            if ($book->cover) {
+                Storage::disk('public')->delete($book->cover);
+            }
+            $book->delete();
+        }
         if ($publisher->logo) {
             Storage::disk('public')->delete($publisher->logo);
         }
         $publisher->delete();
 
         return redirect()->route('publishers.index')
-            ->with('flash.banner', 'Publisher deleted successfully.')
+            ->with('flash.banner', 'Editora eliminada com sucesso.')
             ->with('flash.bannerStyle', 'success');
     }
 }

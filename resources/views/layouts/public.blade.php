@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="biblioteca">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,18 +11,18 @@
 </head>
 <body class="font-sans antialiased bg-white">
 
-    <nav class="bg-white border-b border-slate-200">
+    <nav class="bg-white border-b border-steel-gray">
         <div class="max-w-6xl mx-auto px-6">
             <div class="flex justify-between h-16">
-                <a href="{{ url('/') }}" class="flex items-center font-bold text-slate-800">
+                <a href="{{ url('/') }}" class="flex items-center font-bold text-night-blue">
                     Inovcorp Library
                 </a>
                 <div class="flex items-center gap-4">                    
-                    <a href="{{ route('login') }}" class="text-slate-600 hover:text-slate-900 text-sm font-medium">
+                    <a href="{{ route('login') }}" class="text-night-blue/70 hover:text-night-blue text-sm font-medium">
                         Entrar
                     </a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium">
+                        <a href="{{ route('register') }}" class="px-4 py-2 bg-electric-blue hover:bg-electric-blue/90 rounded-lg text-white text-sm font-medium">
                             Criar Conta
                         </a>
                     @endif
