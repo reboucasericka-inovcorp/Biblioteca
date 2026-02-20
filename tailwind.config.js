@@ -35,8 +35,6 @@ export default {
 
     daisyui: {
         themes: [
-            'light',
-            'corporate',
             {
                 biblioteca: {
                     primary: '#2563EB',

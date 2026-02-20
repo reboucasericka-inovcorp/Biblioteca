@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\RequisitionApiController;
 use App\Http\Controllers\RequisitionController;
 
 Route::get('/books', [BookApiController::class, 'index']);
-Route::get('/books/export', [BookApiController::class, 'export']);
+//Route::get('/books/export', [BookApiController::class, 'export']);
 Route::get('/books/{book}', [BookApiController::class, 'show']);
 Route::get('/authors', [AuthorApiController::class, 'index']);
 Route::get('/publishers', [PublisherApiController::class, 'index']);

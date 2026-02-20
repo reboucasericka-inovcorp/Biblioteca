@@ -8,8 +8,7 @@
         <div class="py-3">
             <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8 w-full">
                 <div class="bg-white p-6 rounded shadow border border-steel-gray/50">
-                    <p>Books Menu </p>
-
+                    <p class="mb-4">Books Menu </p>
                     {{-- Vue entra aqui --}}
                     <books-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></books-table>
                 </div>

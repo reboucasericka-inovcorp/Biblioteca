@@ -5,3 +5,9 @@
 [x-cloak] {
     display: none;
 }
+
+/* Override: garante que btn-primary use a cor do tema biblioteca (#2563EB) */
+[data-theme="biblioteca"] .btn-primary {
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+}

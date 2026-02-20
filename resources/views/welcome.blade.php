@@ -1,6 +1,6 @@
 <x-public-layout>
     {{-- HERO --}}
-    <section class="bg-night-blue text-white py-16">
+    <section class="bg-night-blue text-white py-10">
         <div class="max-w-6xl mx-auto px-6 text-center">
             <h1 class="text-5xl font-bold text-white mb-6">
                 Biblioteca Digital Inovcorp
@@ -21,7 +21,7 @@
    
 
     {{-- FOOTER --}}
-    <footer class="bg-night-blue text-steel-gray py-10">
+    <footer class="bg-night-blue text-white py-10">
         <div class="max-w-6xl mx-auto px-6">
 
             {{-- Linha superior --}}
@@ -39,15 +39,8 @@
                 <div class="flex gap-10 text-sm">
                     <ul class="space-y-2">
                         <li><a href="/" class="hover:text-white transition">Início</a></li>
-                        <li><a href="{{ route('books.index') }}" class="hover:text-white transition">Catálogo</a></li>
-                        <li><a href="/about" class="hover:text-white transition">Sobre</a></li>
-                    </ul>
-
-                    <ul class="space-y-2">
-                        <li><a href="/help" class="hover:text-white transition">Ajuda</a></li>
-                        <li><a href="/contact" class="hover:text-white transition">Contacto</a></li>
-                        <li><a href="/privacy" class="hover:text-white transition">Privacidade</a></li>
-                    </ul>
+                        <li><a href="{{ route('books.index') }}" class="hover:text-white transition">Catálogo</a></li>                        
+                    </ul>                   
                 </div>
             </div>
 

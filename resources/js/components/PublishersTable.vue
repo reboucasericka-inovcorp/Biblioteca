@@ -20,7 +20,7 @@
       <a
         v-if="userIsAdmin"
         href="/publishers/create"
-        class="ml-auto btn btn-primary"
+        class="btn btn-primary"
       >
         Criar Editora
       </a>

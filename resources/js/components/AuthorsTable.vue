@@ -20,7 +20,7 @@
       <a
         v-if="userIsAdmin"
         href="/authors/create"
-        class="ml-auto btn btn-primary"
+        class="btn btn-primary"
       >
         Criar Autor
       </a>

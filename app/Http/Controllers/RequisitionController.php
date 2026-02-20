@@ -58,7 +58,10 @@ class RequisitionController extends Controller
 
     public function confirmReturn(Requisition $requisition)
     {
-        if ($requisition->status !== Requisition::STATUS_ACTIVE) {
+        if (!in_array($requisition->status, [
+            Requisition::STATUS_ACTIVE,
+            Requisition::STATUS_LATE
+        ])) {
             return response()->json(['message' => 'Already returned'], 422);
         }
 

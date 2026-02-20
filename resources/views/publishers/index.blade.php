@@ -9,7 +9,7 @@
             <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8 w-full">
                 <div class="bg-white p-6 rounded shadow border border-steel-gray/50">
                     <p class="mb-4">Publishers Menu</p>
-
+                    {{-- Vue entra aqui --}}
                     <publishers-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></publishers-table>
                 </div>
             </div>

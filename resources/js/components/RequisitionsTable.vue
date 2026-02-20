@@ -1,26 +1,34 @@
 <template>
-  <div class="space-y-4">
+   <div class="space-y-4">
     <!-- Indicadores no topo -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-      <div class="card bg-base-100 shadow">
+      <!-- Requisições Ativas -->
+      <div class="card bg-base-100 shadow-md border-l-4 border-info">
         <div class="card-body p-6">
-        <p class="text-sm text-base-content/70">Requisições Ativas</p>
-        <p class="text-2xl font-bold text-base-content">{{ stats.active }}</p>
+          <p class="text-sm text-base-content/70">Requisições Ativas</p>
+          <p class="text-2xl font-bold text-info">{{ stats.active }}</p>
         </div>
       </div>
-      <div class="card bg-base-100 shadow">
+       <!-- Requisições nos últimos 30 dias -->
+      <div class="card bg-base-100 shadow-md border-l-4 border-success">
         <div class="card-body p-6">
-        <p class="text-sm text-base-content/70">Requisições nos últimos 30 dias</p>
-        <p class="text-2xl font-bold text-base-content">{{ stats.last_30_days }}</p>
+          <p class="text-sm text-base-content/70">Requisições nos últimos 30 dias</p>
+          <p class="text-2xl font-bold text-success">{{ stats.last_30_days }}</p>
         </div>
       </div>
-      <div class="card bg-base-100 shadow">
+
+      <!-- Livros entregues Hoje -->
+      <div class="card bg-base-100 shadow-md border-l-4 border-secondary">
         <div class="card-body p-6">
-        <p class="text-sm text-base-content/70">Livros entregues Hoje</p>
-        <p class="text-2xl font-bold text-base-content">{{ stats.delivered_today }}</p>
+          <p class="text-sm text-base-content/70">Livros entregues Hoje</p>
+          <p class="text-2xl font-bold text-secondary">{{ stats.delivered_today }}</p>
         </div>
       </div>
     </div>
+
+
+
+    
 
     <!-- Filtros -->
     <div class="card bg-base-100 shadow">
