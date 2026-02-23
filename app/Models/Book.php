@@ -12,10 +12,14 @@ class Book extends Model
     protected $fillable = [
         'name',
         'isbn',
+        'isbn_13',
         'price',
         'publisher_id',
         'bibliography',
         'cover',
+        'google_volume_id',
+        'thumbnail_url',
+        'published_date',
     ];
     protected $casts = [
         'price' => 'decimal:2',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use App\Models\Author;
 
@@ -29,6 +30,6 @@ class AuthorApiController extends Controller
             return $author;
         });
 
-        return $paginator;
+        return ApiResponse::success($paginator);
     }
 }

@@ -170,6 +170,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { unwrap, unwrapPage } from '../api';
 
 defineProps({
   userIsAdmin: { type: Boolean, default: false },
@@ -189,23 +190,24 @@ const pagination = ref({
 
 async function loadStats() {
   const res = await window.axios.get('/api/requisitions/stats');
-  stats.value = res.data;
+  stats.value = unwrap(res) ?? {};
 }
 
 async function load() {
-  const params = new URLSearchParams({
-    page: pagination.value.current_page,
-    sort: sort.value,
-    dir: dir.value,
+  const res = await window.axios.get('/api/requisitions', {
+    params: {
+      page: pagination.value.current_page,
+      sort: sort.value,
+      dir: dir.value,
+      ...(status.value && { status: status.value }),
+    },
   });
-  if (status.value) params.set('status', status.value);
-
-  const res = await window.axios.get(`/api/requisitions?${params.toString()}`);
-  requisitions.value = res.data.data;
+  const pageData = unwrapPage(res);
+  requisitions.value = pageData.data ?? [];
   pagination.value = {
-    current_page: res.data.current_page,
-    last_page: res.data.last_page,
-    total: res.data.total,
+    current_page: pageData.current_page ?? 1,
+    last_page: pageData.last_page ?? 1,
+    total: pageData.total ?? 0,
   };
 }
 

@@ -89,6 +89,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { unwrapPage } from '../api';
 
 defineProps({
   userIsAdmin: { type: Boolean, default: false },
@@ -104,22 +105,17 @@ const dir = ref('asc');
    API
    =============================== */
 async function load() {
-  const params = new URLSearchParams({
-    search: search.value,
-    sort: sort.value,
-    dir: dir.value,
+  const res = await window.axios.get('/api/authors', {
+    params: { search: search.value, sort: sort.value, dir: dir.value },
   });
-
-  const res = await fetch(`/api/authors?${params.toString()}`);
-  const json = await res.json();
-
-  authors.value = json.data;
+  const pageData = unwrapPage(res);
+  authors.value = pageData.data ?? [];
 }
 
 /* ===============================
    REAGIR A FILTROS
    =============================== */
-watch([search, sort, dir], load);
+watch([search, sort, dir], () => load());
 
 function confirmDelete(e) {
   if (!confirm('Tem certeza que deseja eliminar este autor?')) {

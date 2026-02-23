@@ -11,6 +11,7 @@
                     <p class="mb-4">Books Menu </p>
                     {{-- Vue entra aqui --}}
                     <books-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></books-table>
+                    <google-books-search :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></google-books-search>
                 </div>
             </div>
         </div>

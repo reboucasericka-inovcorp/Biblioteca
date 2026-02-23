@@ -44,6 +44,8 @@
 </template>
 
 <script>
+import { unwrap } from '../api';
+
 export default {
   props: ['bookId'],
 
@@ -60,7 +62,7 @@ export default {
   methods: {
     fetchBook() {
       window.axios.get(`/api/books/${this.bookId}`).then((response) => {
-        this.book = response.data;
+        this.book = unwrap(response) ?? {};
       });
     },
 

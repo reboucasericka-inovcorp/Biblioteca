@@ -83,6 +83,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue';
+import { unwrapPage } from '../api';
 
 const books = ref([]);
 const search = ref('');
@@ -93,14 +94,11 @@ const isLogged = computed(() => {
 });
 
 async function load() {
-  const params = new URLSearchParams({
-    search: search.value,
-    sort: 'created_at',
-    dir: 'desc',
+  const res = await window.axios.get('/api/books', {
+    params: { search: search.value, sort: 'created_at', dir: 'desc' },
   });
-  const res = await fetch(`/api/books?${params.toString()}`);
-  const json = await res.json();
-  books.value = json.data ?? json;
+  const pageData = unwrapPage(res);
+  books.value = pageData.data ?? [];
 }
 
 async function requisition(bookId) {
@@ -115,5 +113,5 @@ async function requisition(bookId) {
 
 watch(search, () => load());
 
-onMounted(load);
+onMounted(() => load());
 </script>

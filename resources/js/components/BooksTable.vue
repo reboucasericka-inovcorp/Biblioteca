@@ -142,6 +142,32 @@
       </table>
     </div>
 
+    <!-- Paginação -->
+    <div
+      v-if="pagination.last_page > 1"
+      class="flex items-center justify-between pt-4"
+    >
+      <p class="text-sm text-base-content/70">
+        Página {{ pagination.current_page }} de {{ pagination.last_page }} ({{ pagination.total }} livros)
+      </p>
+      <div class="flex gap-2">
+        <button
+          :disabled="pagination.current_page <= 1"
+          @click="load(pagination.current_page - 1)"
+          class="btn btn-sm btn-ghost disabled:opacity-50"
+        >
+          Anterior
+        </button>
+        <button
+          :disabled="pagination.current_page >= pagination.last_page"
+          @click="load(pagination.current_page + 1)"
+          class="btn btn-sm btn-ghost disabled:opacity-50"
+        >
+          Próxima
+        </button>
+      </div>
+    </div>
+
     <!-- Link de exportação abaixo da tabela -->
     <div class="flex items-center gap-4 pt-4">
       <button
@@ -163,13 +189,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { unwrapPage } from '../api';
+
+function onBooksRefresh() {
+  load(pagination.value.current_page);
+}
 
 defineProps({
   userIsAdmin: { type: Boolean, default: false },
 });
 
 const books = ref([]);
+const pagination = ref({ current_page: 1, last_page: 1, total: 0 });
 const csrfToken = ref('');
 const search = ref('');    // texto de pesquisa
 const sort = ref('name');  // campo de ordenação
@@ -179,23 +211,23 @@ const exporting = ref(false);
 /* ===============================
    API
    =============================== */
-async function load() {
-  const params = new URLSearchParams({
-    search: search.value,
-    sort: sort.value,
-    dir: dir.value,
+async function load(page = 1) {
+  const res = await window.axios.get('/api/books', {
+    params: { search: search.value, sort: sort.value, dir: dir.value, page },
   });
-
-  const res = await fetch(`/api/books?${params.toString()}`);
-  const json = await res.json();
-
-  books.value = json.data;
+  const p = unwrapPage(res);
+  books.value = p.data ?? [];
+  pagination.value = {
+    current_page: p.current_page ?? 1,
+    last_page: p.last_page ?? 1,
+    total: p.total ?? 0,
+  };
 }
 
 async function requisition(bookId) {
   try {
     await window.axios.post('/api/requisitions', { book_id: bookId });
-    await load();
+    await load(pagination.value.current_page);
   } catch (e) {
     console.error('Requisition error:', e);
     const msg = e.response?.data?.message || 'Não foi possível requisitar o livro. Tente novamente.';
@@ -247,7 +279,7 @@ async function exportExcel() {
    REAGIR A FILTROS (search / sort)
    =============================== */
 watch([search, sort, dir], () => {
-  load();
+  load(1);
 });
 
 function confirmDelete(e) {
@@ -258,6 +290,11 @@ function confirmDelete(e) {
 
 onMounted(() => {
   csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  load();
+  load(1);
+  window.addEventListener('books-refresh', onBooksRefresh);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('books-refresh', onBooksRefresh);
 });
 </script>

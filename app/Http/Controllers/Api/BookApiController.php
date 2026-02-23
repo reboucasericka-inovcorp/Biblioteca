@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BookResource;
 use App\Models\Book;
+use App\Models\Requisition;
 use App\Exports\BooksExport;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -12,7 +15,8 @@ class BookApiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Book::with(['publisher', 'authors', 'requisitions']);
+        $query = Book::with(['publisher', 'authors'])
+            ->withCount(['requisitions as active_requisitions_count' => fn ($q) => $q->where('status', Requisition::STATUS_ACTIVE)]);
 
         // 🔍 Search
         if ($s = $request->get('search')) {
@@ -38,26 +42,27 @@ class BookApiController extends Controller
         $dir  = $request->get('dir', $type === 'recent' ? 'desc' : 'asc');
         $query->orderBy($sort, $dir);
 
+        // Home/recent: lista simples não paginada (até 8 itens)
+        if (in_array($type, ['recent', 'tech'])) {
+            $limit = min((int) $request->get('per_page', 8), 20);
+            $books = $query->limit($limit)->get();
+            return ApiResponse::success(BookResource::collection($books));
+        }
+
+        // Listagem principal: paginada
         $perPage = $request->get('per_page', 10);
         $paginator = $query->paginate((int) $perPage);
-        $paginator->getCollection()->transform(function ($book) {
-            $book->is_available = $book->isAvailable();
-            $book->cover_url = $book->cover ? asset('storage/' . $book->cover) : null;
-            return $book;
-        });
+        $paginator->through(fn ($book) => new BookResource($book));
 
-        return $paginator;
+        return ApiResponse::success($paginator);
     }
 
     public function show(Book $book)
     {
-        $book->load(['publisher', 'authors', 'requisitions.user']);
+        $book->load(['publisher', 'authors', 'requisitions.user'])
+            ->loadCount(['requisitions as active_requisitions_count' => fn ($q) => $q->where('status', Requisition::STATUS_ACTIVE)]);
 
-        return response()->json([
-            ...$book->toArray(),
-            'is_available' => $book->isAvailable(),
-            'cover_url' => $book->cover ? asset('storage/' . $book->cover) : null,
-        ]);
+        return ApiResponse::success(new BookResource($book));
     }
 
     public function export(Request $request)

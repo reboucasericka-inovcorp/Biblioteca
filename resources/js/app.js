@@ -8,6 +8,7 @@ import RequisitionsTable from './components/RequisitionsTable.vue';
 import PublicBooksTable from './components/PublicBooksTable.vue';
 import PublicBooksSection from './components/PublicBooksSection.vue';
 import BooksGrid from './components/BooksGrid.vue';
+import GoogleBooksSearch from './components/GoogleBooksSearch.vue';
 
 
 const app = createApp({});
@@ -19,6 +20,7 @@ app.component('requisitions-table', RequisitionsTable);
 app.component('public-books-table', PublicBooksTable);
 app.component('public-books-section', PublicBooksSection);
 app.component('books-grid', BooksGrid);
+app.component('google-books-search', GoogleBooksSearch);
 
 const el = document.getElementById('app');
 if (el) {

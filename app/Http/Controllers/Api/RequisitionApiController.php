@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Requisition;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
 class RequisitionApiController extends Controller
@@ -29,7 +30,7 @@ class RequisitionApiController extends Controller
         $dir = $request->get('dir', 'desc');
         $query->orderBy($sort, $dir);
 
-        return $query->paginate(15);
+        return ApiResponse::success($query->paginate(15));
     }
 
     public function stats(Request $request)
@@ -45,7 +46,7 @@ class RequisitionApiController extends Controller
         $last30Days = (clone $query)->where('request_date', '>=', now()->subDays(30))->count();
         $deliveredToday = (clone $query)->whereDate('return_date', today())->count();
 
-        return response()->json([
+        return ApiResponse::success([
             'active' => $active,
             'last_30_days' => $last30Days,
             'delivered_today' => $deliveredToday,

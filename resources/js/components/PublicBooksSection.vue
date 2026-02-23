@@ -24,6 +24,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { unwrap } from '../api';
 import BooksGrid from './BooksGrid.vue';
 
 const recentBooks = ref([]);
@@ -35,27 +36,17 @@ const isLogged = computed(() => {
 });
 
 async function loadRecent() {
-  const params = new URLSearchParams({
-    type: 'recent',
-    sort: 'created_at',
-    dir: 'desc',
-    per_page: '8',
+  const res = await window.axios.get('/api/books', {
+    params: { type: 'recent', sort: 'created_at', dir: 'desc', per_page: 8 },
   });
-  const res = await fetch(`/api/books?${params.toString()}`);
-  const json = await res.json();
-  recentBooks.value = json.data ?? [];
+  recentBooks.value = unwrap(res) ?? [];
 }
 
 async function loadTech() {
-  const params = new URLSearchParams({
-    type: 'tech',
-    sort: 'created_at',
-    dir: 'desc',
-    per_page: '8',
+  const res = await window.axios.get('/api/books', {
+    params: { type: 'tech', sort: 'created_at', dir: 'desc', per_page: 8 },
   });
-  const res = await fetch(`/api/books?${params.toString()}`);
-  const json = await res.json();
-  techBooks.value = json.data ?? [];
+  techBooks.value = unwrap(res) ?? [];
 }
 
 async function requisition(bookId) {

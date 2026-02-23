@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Requisition;
 use App\Models\User;
 use App\Mail\RequisitionCreated;
+use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class RequisitionController extends Controller
             ->exists();
 
         if ($alreadyRequested) {
-            return response()->json(['message' => 'Book is not available.'], 422);
+            return ApiResponse::error('Book is not available.', 422);
         }
 
         // 🔒 REGRA 2 — Utilizador já tem 3 livros ativos?
@@ -40,7 +41,7 @@ class RequisitionController extends Controller
             ->count();
 
         if ($activeCount >= 3) {
-            return response()->json(['message' => 'You already have 3 active requisitions.'], 422);
+            return ApiResponse::error('You already have 3 active requisitions.', 422);
         }
 
         $requisition = DB::transaction(fn () => Requisition::create([
@@ -53,7 +54,7 @@ class RequisitionController extends Controller
         Mail::to($user->email)->send(new RequisitionCreated($requisition));
         Mail::to(User::role('Admin')->get())->send(new RequisitionCreated($requisition));
 
-        return response()->json(['message' => 'Requisition created successfully.'], 201);
+        return ApiResponse::success(null, 'Requisition created successfully.', 201);
     }
 
     public function confirmReturn(Requisition $requisition)
@@ -62,7 +63,7 @@ class RequisitionController extends Controller
             Requisition::STATUS_ACTIVE,
             Requisition::STATUS_LATE
         ])) {
-            return response()->json(['message' => 'Already returned'], 422);
+            return ApiResponse::error('Already returned', 422);
         }
 
         $returnDate = now();
@@ -73,6 +74,6 @@ class RequisitionController extends Controller
             'status' => Requisition::STATUS_RETURNED,
         ]);
 
-        return response()->json(['message' => 'Return confirmed']);
+        return ApiResponse::success(null, 'Return confirmed');
     }
 }
