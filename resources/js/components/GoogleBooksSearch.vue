@@ -1,9 +1,14 @@
 <template>
-  <div v-if="userIsAdmin" class="card bg-base-100 shadow mt-6">
+  <div class="card bg-base-100 shadow mt-6">
     <div class="card-body p-6">
-      <h3 class="card-title text-lg">Importar da Google Books</h3>
+      <h3 class="card-title text-lg">
+        {{ userIsAdmin ? 'Importar da Google Books' : 'Pesquisar na Google Books' }}
+      </h3>
       <p class="text-sm text-base-content/70">
-        Pesquise livros na Google Books e importe para a base de dados local.
+        {{ userIsAdmin
+          ? 'Pesquise livros no Google Books e importe para a base de dados local.'
+          : 'Pesquise livros e requisite os que existem no catálogo ou sugira aquisição.'
+        }}
       </p>
 
       <div class="flex gap-2 mt-4">
@@ -63,17 +68,47 @@
               <p v-if="v.isbn_13" class="text-xs font-mono text-base-content/60 mt-1">
                 ISBN-13: {{ v.isbn_13 }}
               </p>
+              <span
+                v-if="!userIsAdmin && v.in_catalog"
+                class="badge badge-success badge-sm mt-1"
+              >
+                No catálogo
+              </span>
             </div>
             <div class="flex-shrink-0 flex items-center">
-              <button
-                type="button"
-                class="btn btn-sm btn-success"
-                :disabled="importingId === v.google_volume_id"
-                @click="importBook(v)"
-              >
-                <span v-if="importingId === v.google_volume_id">A importar...</span>
-                <span v-else>Importar</span>
-              </button>
+              <template v-if="userIsAdmin">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-success"
+                  :disabled="actionId === v.google_volume_id"
+                  @click="importBook(v)"
+                >
+                  <span v-if="actionId === v.google_volume_id">A importar...</span>
+                  <span v-else>Importar</span>
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  v-if="v.in_catalog && v.book_id"
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  :disabled="actionId === v.google_volume_id"
+                  @click="requisitar(v)"
+                >
+                  <span v-if="actionId === v.google_volume_id">A processar...</span>
+                  <span v-else>Requisitar</span>
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  :disabled="actionId === v.google_volume_id"
+                  @click="sugerirAquisicao(v)"
+                >
+                  <span v-if="actionId === v.google_volume_id">A enviar...</span>
+                  <span v-else>Sugerir aquisição</span>
+                </button>
+              </template>
             </div>
           </div>
         </div>
@@ -90,18 +125,18 @@
 import { ref } from 'vue';
 import { unwrap } from '../api';
 
-defineProps({
+const props = defineProps({
   userIsAdmin: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['imported']);
+const emit = defineEmits(['imported', 'suggested', 'requisitioned']);
 
 const searchQuery = ref('');
 const results = ref([]);
 const searching = ref(false);
 const searchError = ref('');
 const searched = ref(false);
-const importingId = ref(null);
+const actionId = ref(null);
 
 async function search() {
   const q = searchQuery.value?.trim();
@@ -112,9 +147,9 @@ async function search() {
   searched.value = true;
 
   try {
-    const res = await window.axios.get('/api/google-books/search', {
-      params: { q, maxResults: 20 },
-    });
+    const params = { q, maxResults: 20 };
+    if (!props.userIsAdmin) params.enrich_catalog = 1;
+    const res = await window.axios.get('/api/google-books/search', { params });
     results.value = res.data?.data ?? [];
     if (results.value.length === 0 && !res.data?.data) {
       searchError.value = 'A pesquisa não retornou resultados. A API pode estar indisponível.';
@@ -129,11 +164,9 @@ async function search() {
 }
 
 async function importBook(volume) {
-  importingId.value = volume.google_volume_id;
+  actionId.value = volume.google_volume_id;
   try {
-    const res = await window.axios.post('/api/google-books/import', {
-      volume,
-    });
+    const res = await window.axios.post('/api/google-books/import', { volume });
     if (res.status === 201) {
       emit('imported', unwrap(res));
       window.dispatchEvent(new CustomEvent('books-refresh'));
@@ -143,7 +176,55 @@ async function importBook(volume) {
     const msg = e.response?.data?.message ?? 'Erro ao importar. Tente novamente.';
     alert(msg);
   } finally {
-    importingId.value = null;
+    actionId.value = null;
   }
+}
+
+async function requisitar(volume) {
+  if (!volume.book_id) return;
+  actionId.value = volume.google_volume_id;
+  try {
+    const res = await window.axios.post('/api/requisitions', { book_id: volume.book_id });
+    if (res.status === 201) {
+      emit('requisitioned');
+      window.dispatchEvent(new CustomEvent('requisitions-refresh'));
+      showToast('Requisição criada com sucesso.');
+    }
+  } catch (e) {
+    const msg = e.response?.data?.message ?? 'Erro ao requisitar. Tente novamente.';
+    alert(msg);
+  } finally {
+    actionId.value = null;
+  }
+}
+
+async function sugerirAquisicao(volume) {
+  actionId.value = volume.google_volume_id;
+  try {
+    const res = await window.axios.post('/api/book-suggestions', {
+      google_volume_id: volume.google_volume_id,
+      title: volume.title,
+      authors: volume.authors ?? [],
+      thumbnail_url: volume.thumbnail_url ?? null,
+    });
+    if (res.status === 201) {
+      emit('suggested');
+      window.dispatchEvent(new CustomEvent('suggestions-refresh'));
+      showToast('Sugestão enviada com sucesso.');
+    }
+  } catch (e) {
+    const msg = e.response?.data?.message ?? 'Erro ao enviar sugestão. Tente novamente.';
+    alert(msg);
+  } finally {
+    actionId.value = null;
+  }
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'alert alert-success shadow-lg fixed bottom-4 right-4 z-50 max-w-sm';
+  toast.innerHTML = `<span>${msg}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
 </script>

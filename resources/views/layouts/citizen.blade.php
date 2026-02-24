@@ -22,11 +22,11 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center gap-6">
-                        <a href="{{ route('dashboard') }}" class="font-bold text-night-blue text-lg">
+                        <a href="{{ route('dashboard.citizen') }}" class="font-bold text-night-blue text-lg">
                             Inovcorp Library
                         </a>
                         <nav class="hidden md:flex gap-1">
-                            <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg text-sm {{ request()->routeIs('dashboard') ? 'bg-steel-gray/30 text-night-blue font-medium' : 'text-night-blue/70 hover:bg-steel-gray/20' }}">
+                            <a href="{{ route('dashboard.citizen') }}" class="px-3 py-2 rounded-lg text-sm {{ request()->routeIs('dashboard.citizen') ? 'bg-steel-gray/30 text-night-blue font-medium' : 'text-night-blue/70 hover:bg-steel-gray/20' }}">
                                 Dashboard
                             </a>
                             <a href="{{ route('books.index') }}" class="px-3 py-2 rounded-lg text-sm {{ request()->routeIs('books.*') ? 'bg-steel-gray/30 text-night-blue font-medium' : 'text-night-blue/70 hover:bg-steel-gray/20' }}">
@@ -76,7 +76,7 @@
     {{-- Mobile nav --}}
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-steel-gray safe-area-pb z-50">
         <div class="flex justify-around py-2">
-            <a href="{{ route('dashboard') }}" class="text-night-blue/70 text-xs">Dashboard</a>
+            <a href="{{ route('dashboard.citizen') }}" class="text-night-blue/70 text-xs">Dashboard</a>
             <a href="{{ route('books.index') }}" class="text-night-blue/70 text-xs">Livros</a>
             <a href="{{ route('authors.index') }}" class="text-night-blue/70 text-xs">Autores</a>
             <a href="{{ route('publishers.index') }}" class="text-night-blue/70 text-xs">Editoras</a>

@@ -2,6 +2,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\BookDownloadController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
@@ -15,13 +16,19 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard/citizen', function () {
+        return view('dashboard.citizen');
+    })->name('dashboard.citizen');
+
+    Route::get('/dashboard/admin', function () {
+        return view('dashboard.admin');
+    })->middleware('role:Admin')->name('dashboard.admin');
+
     Route::get('/dashboard', function () {
-        $booksCount = \App\Models\Book::count();
-        $authorsCount = \App\Models\Author::count();
-        $publishersCount = \App\Models\Publisher::count();
-        $recentBooks = \App\Models\Book::with(['publisher', 'authors'])->latest()->take(5)->get();
-        
-        return view('dashboard', compact('booksCount', 'authorsCount', 'publishersCount', 'recentBooks'));
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect()->route('dashboard.admin');
+        }
+        return redirect()->route('dashboard.citizen');
     })->name('dashboard');
 
     Route::get('/books', [BookController::class, 'index'])
@@ -38,6 +45,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/books/{book}', [BookController::class, 'show'])
         ->name('books.show');
+    Route::get('/books/{book}/download', [BookDownloadController::class, 'download'])
+        ->middleware('auth:sanctum')
+        ->name('books.download');
 
     Route::get('/authors', [AuthorController::class, 'index'])
         ->name('authors.index');

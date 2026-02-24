@@ -169,7 +169,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { unwrap, unwrapPage } from '../api';
 
 defineProps({
@@ -253,5 +253,15 @@ watch([status, sort, dir], () => {
 onMounted(() => {
   loadStats();
   load();
+  window.addEventListener('requisitions-refresh', handleRefresh);
 });
+
+onUnmounted(() => {
+  window.removeEventListener('requisitions-refresh', handleRefresh);
+});
+
+function handleRefresh() {
+  loadStats();
+  load();
+}
 </script>

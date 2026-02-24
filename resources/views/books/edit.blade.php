@@ -67,6 +67,23 @@
                             <img id="cover-preview" class="mt-2 h-32 object-cover rounded hidden" src="" alt="Preview">
                         </div>
 
+                        <div class="mt-4 form-control">
+                            <label class="label" for="file">
+                                <span class="label-text">PDF do Livro (opcional)</span>
+                            </label>
+                            <input
+                                id="file"
+                                type="file"
+                                name="file"
+                                accept="application/pdf"
+                                class="file-input file-input-bordered"
+                            />
+                            @if($book->file_path)
+                                <div class="mt-2 text-sm text-green-600">PDF já carregado.</div>
+                            @endif
+                            <p class="text-sm text-base-content/70 mt-1">Máx. 20 MB. Apenas ficheiros PDF.</p>
+                        </div>
+
                         <div class="flex items-center justify-end gap-4 mt-6">
                             <a href="{{ route('books.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-steel-gray rounded-md font-semibold text-xs text-night-blue uppercase tracking-widest shadow-sm hover:bg-steel-gray/20 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:ring-offset-2 transition ease-in-out duration-150">
                                 Cancelar

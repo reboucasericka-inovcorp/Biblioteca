@@ -8,10 +8,14 @@
         <div class="py-3">
             <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8 w-full">
                 <div class="bg-white p-6 rounded shadow border border-steel-gray/50">
-                    <p class="mb-4">Books Menu </p>
+                    <p class="mb-8">Books Menu</p>
                     {{-- Vue entra aqui --}}
+                    <div class="mb-8">
+                        <google-books-search :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></google-books-search>
+                    </div>
+                    
+
                     <books-table :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></books-table>
-                    <google-books-search :user-is-admin="@json(Auth::user()->hasRole('Admin'))"></google-books-search>
                 </div>
             </div>
         </div>

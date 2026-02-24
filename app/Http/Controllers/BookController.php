@@ -59,6 +59,7 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
+            'file' => 'nullable|mimes:pdf|max:20480',
             'authors' => 'nullable|array',
             'authors.*' => 'exists:authors,id',
         ]);
@@ -68,6 +69,11 @@ class BookController extends Controller
             $coverPath = $request->file('cover')->store('covers', 'public');
         }
 
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('books', 'public');
+        }
+
         $book = Book::create([
             'name' => $request->name,
             'isbn' => $request->isbn,
@@ -75,6 +81,7 @@ class BookController extends Controller
             'publisher_id' => $request->publisher_id,
             'bibliography' => $request->bibliography,
             'cover' => $coverPath,
+            'file_path' => $filePath,
         ]);
 
         $book->authors()->sync($request->input('authors', []));
@@ -93,6 +100,7 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
+            'file' => 'nullable|mimes:pdf|max:20480',
             'authors' => 'nullable|array',
             'authors.*' => 'exists:authors,id',
         ]);
@@ -104,6 +112,13 @@ class BookController extends Controller
                 Storage::disk('public')->delete($book->cover);
             }
             $data['cover'] = $request->file('cover')->store('covers', 'public');
+        }
+
+        if ($request->hasFile('file')) {
+            if ($book->file_path) {
+                Storage::disk('public')->delete($book->file_path);
+            }
+            $data['file_path'] = $request->file('file')->store('books', 'public');
         }
 
         $book->update($data);
@@ -125,6 +140,9 @@ class BookController extends Controller
         $book->authors()->detach();
         if ($book->cover) {
             Storage::disk('public')->delete($book->cover);
+        }
+        if ($book->file_path) {
+            Storage::disk('public')->delete($book->file_path);
         }
         $book->delete();
 

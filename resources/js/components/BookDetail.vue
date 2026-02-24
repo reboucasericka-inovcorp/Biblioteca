@@ -12,7 +12,7 @@
 
     <p class="text-sm text-base-content">{{ book.bibliography }}</p>
 
-    <div>
+    <div class="flex flex-wrap gap-2">
       <button
         v-if="book.is_available"
         @click="requisition"
@@ -21,7 +21,22 @@
         Requisitar
       </button>
 
-      <span v-else class="badge badge-error">
+      <button
+        v-if="book.can_download && book.has_pdf"
+        @click="download"
+        class="btn btn-primary"
+      >
+        Baixar Livro
+      </button>
+      <button
+        v-else-if="book.can_download && book.google_volume_id"
+        @click="openPreview"
+        class="btn btn-outline"
+      >
+        Ler no Google Books
+      </button>
+
+      <span v-if="!book.is_available && !book.can_download" class="badge badge-error">
         Indisponível
       </span>
     </div>
@@ -61,7 +76,7 @@ export default {
 
   methods: {
     fetchBook() {
-      window.axios.get(`/api/books/${this.bookId}`).then((response) => {
+      window.axios.get(`/api/books/${this.bookId}`, { withCredentials: true }).then((response) => {
         this.book = unwrap(response) ?? {};
       });
     },
@@ -76,6 +91,16 @@ export default {
           const msg = e.response?.data?.message || 'Não foi possível requisitar.';
           alert(msg);
         });
+    },
+
+    download() {
+      window.location.href = `/books/${this.bookId}/download`;
+    },
+
+    openPreview() {
+      if (this.book.google_volume_id) {
+        window.open(`https://books.google.com/books?id=${this.book.google_volume_id}`, '_blank');
+      }
     },
   },
 };

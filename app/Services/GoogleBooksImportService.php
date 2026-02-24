@@ -130,39 +130,28 @@ class GoogleBooksImportService
 
     private function updateBookAttributes(Book $book, array $volume, bool $forceUpdate): void
     {
-        if (!empty($volume['title'])) {
-            $book->name = $volume['title'];
-        }
+        $book->name = trim($volume['title'] ?? '') ?: 'Título indisponível no momento da importação.';
 
         if ($forceUpdate || empty($book->bibliography)) {
-            if (!empty($volume['description'])) {
-                $book->bibliography = $volume['description'];
-            }
+            $book->bibliography = trim($volume['description'] ?? '') ?: 'Descrição indisponível no momento da importação.';
         }
 
+        $book->publisher_id = $this->findOrCreatePublisher($volume['publisher'] ?? null)->id;
+
         if ($forceUpdate || empty($book->published_date)) {
-            if (!empty($volume['published_date'])) {
-                $book->published_date = $volume['published_date'];
-            }
+            $book->published_date = trim($volume['published_date'] ?? '') ?: null;
         }
 
         if ($forceUpdate || empty($book->thumbnail_url)) {
-            if (!empty($volume['thumbnail_url'])) {
-                $book->thumbnail_url = $volume['thumbnail_url'];
-            }
+            $book->thumbnail_url = trim($volume['thumbnail_url'] ?? '') ?: null;
         }
 
-        if ($forceUpdate || empty($book->publisher_id)) {
-            $publisher = $this->findOrCreatePublisher($volume['publisher'] ?? null);
-            $book->publisher_id = $publisher->id;
+        if (empty($book->isbn_13)) {
+            $book->isbn_13 = trim($volume['isbn_13'] ?? '') ?: null;
         }
 
-        if (empty($book->isbn_13) && !empty($volume['isbn_13'])) {
-            $book->isbn_13 = $volume['isbn_13'];
-        }
-
-        if (empty($book->google_volume_id) && !empty($volume['google_volume_id'])) {
-            $book->google_volume_id = $volume['google_volume_id'];
+        if (empty($book->google_volume_id)) {
+            $book->google_volume_id = trim($volume['google_volume_id'] ?? '') ?: null;
         }
     }
 }

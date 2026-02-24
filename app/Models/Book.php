@@ -20,6 +20,7 @@ class Book extends Model
         'google_volume_id',
         'thumbnail_url',
         'published_date',
+        'file_path',
     ];
     protected $casts = [
         'price' => 'decimal:2',

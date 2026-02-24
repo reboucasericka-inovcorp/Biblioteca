@@ -22,11 +22,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center gap-6">
-                        <a href="{{ route('dashboard') }}" class="font-bold text-night-blue text-lg">
+                        <a href="{{ route('dashboard.admin') }}" class="font-bold text-night-blue text-lg">
                             Inovcorp Library
                         </a>
                         <nav class="hidden md:flex gap-1">
-                        <a href="{{ route('dashboard') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('dashboard') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
+                        <a href="{{ route('dashboard.admin') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('dashboard.admin') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
                             Dashboard
                         </a>
                         <a href="{{ route('books.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('books.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
@@ -88,7 +88,7 @@
         <div class="flex-1 flex flex-col min-w-0">
             <header class="bg-base-100 shadow-sm border-b border-base-300 lg:hidden">
                 <div class="flex items-center justify-between px-4 py-3">
-                    <a href="{{ route('dashboard') }}" class="text-xl font-semibold text-base-content">Inovcorp Library</a>
+                    <a href="{{ route('dashboard.admin') }}" class="text-xl font-semibold text-base-content">Inovcorp Library</a>
                     <span class="badge badge-secondary badge-sm">Admin</span>
                 </div>
             </header>
@@ -110,7 +110,7 @@
     {{-- Mobile nav --}}
     <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 safe-area-pb z-50">
         <div class="flex justify-around py-2">
-            <a href="{{ route('dashboard') }}" class="text-base-content/70 text-sm">Dashboard</a>
+            <a href="{{ route('dashboard.admin') }}" class="text-base-content/70 text-sm">Dashboard</a>
             <a href="{{ route('books.index') }}" class="text-base-content/70 text-sm">Livros</a>
             <a href="{{ route('authors.index') }}" class="text-base-content/70 text-sm">Autores</a>
             <a href="{{ route('publishers.index') }}" class="text-base-content/70 text-sm">Editoras</a>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Book;
 use App\Models\Requisition;
 use App\Services\GoogleBooksImportService;
 use App\Services\GoogleBooksService;
@@ -23,19 +24,35 @@ class GoogleBooksApiController extends Controller
     ) {}
 
     /**
-     * GET /api/google-books/search?q=&maxResults=
+     * GET /api/google-books/search?q=&maxResults=&enrich_catalog=1
+     * enrich_catalog=1: adiciona in_catalog e book_id a cada resultado (para cidadão)
      */
     public function search(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'q' => 'nullable|string|max:500',
             'maxResults' => 'nullable|integer|min:1|max:40',
+            'enrich_catalog' => 'nullable|boolean',
         ]);
 
         $query = $validated['q'] ?? '';
         $maxResults = $validated['maxResults'] ?? 20;
+        $enrichCatalog = $validated['enrich_catalog'] ?? false;
 
         $results = $this->googleBooksService->search($query, $maxResults);
+
+        if ($enrichCatalog && !empty($results)) {
+            $volumeIds = array_column($results, 'google_volume_id');
+            $catalogBooks = Book::whereIn('google_volume_id', $volumeIds)
+                ->get()
+                ->keyBy('google_volume_id');
+
+            foreach ($results as &$v) {
+                $book = $catalogBooks->get($v['google_volume_id'] ?? null);
+                $v['in_catalog'] = (bool) $book;
+                $v['book_id'] = $book?->id;
+            }
+        }
 
         return ApiResponse::success(
             $results,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Requisition;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -36,6 +37,30 @@ class BookResource extends JsonResource
             'is_available' => isset($this->active_requisitions_count)
                 ? $this->active_requisitions_count == 0
                 : $this->resource->isAvailable(),
+
+            'has_pdf' => !empty($this->file_path),
+            'can_download' => $this->canDownload($request),
         ];
+    }
+
+    private function canDownload(Request $request): bool
+    {
+        if (empty($this->file_path)) {
+            return false;
+        }
+
+        $user = $request->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Admin')) {
+            return true;
+        }
+
+        return Requisition::where('book_id', $this->id)
+            ->where('user_id', $user->id)
+            ->where('status', Requisition::STATUS_ACTIVE)
+            ->exists();
     }
 }
