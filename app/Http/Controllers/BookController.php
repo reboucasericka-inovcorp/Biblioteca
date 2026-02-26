@@ -71,7 +71,7 @@ class BookController extends Controller
 
         $filePath = null;
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('books', 'public');
+            $filePath = $request->file('file')->store('', 'books');
         }
 
         $book = Book::create([
@@ -116,9 +116,9 @@ class BookController extends Controller
 
         if ($request->hasFile('file')) {
             if ($book->file_path) {
-                Storage::disk('public')->delete($book->file_path);
+                Storage::disk('books')->delete($book->file_path);
             }
-            $data['file_path'] = $request->file('file')->store('books', 'public');
+            $data['file_path'] = $request->file('file')->store('', 'books');
         }
 
         $book->update($data);
@@ -142,7 +142,7 @@ class BookController extends Controller
             Storage::disk('public')->delete($book->cover);
         }
         if ($book->file_path) {
-            Storage::disk('public')->delete($book->file_path);
+            Storage::disk('books')->delete($book->file_path);
         }
         $book->delete();
 

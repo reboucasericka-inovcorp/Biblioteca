@@ -40,12 +40,11 @@ class BookDownloadController extends Controller
 
     private function downloadFile(Book $book): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        $path = Storage::disk('public')->path($book->file_path);
-
-        if (!file_exists($path)) {
+        if (!Storage::disk('books')->exists($book->file_path)) {
             abort(404, 'Ficheiro PDF não encontrado.');
         }
 
+        $path = Storage::disk('books')->path($book->file_path);
         $name = Str::slug($book->name) . '.pdf';
 
         return response()->download($path, $name, [

@@ -25,9 +25,12 @@ Route::middleware(['auth'])->group(function () {
     })->middleware('role:Admin')->name('dashboard.admin');
 
     Route::get('/dashboard', function () {
-        if (Auth::user()->hasRole('Admin')) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->hasRole('Admin')) {
             return redirect()->route('dashboard.admin');
         }
+
         return redirect()->route('dashboard.citizen');
     })->name('dashboard');
 
@@ -38,8 +41,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['auth', 'role:Admin'])->group(function () {
         Route::resource('books', BookController::class)->except(['index', 'show']);
-        Route::resource('authors', AuthorController::class)->except(['index']);
-        Route::resource('publishers', PublisherController::class)->except(['index']);
+        Route::resource('authors', AuthorController::class)->except(['index', 'show']);
+        Route::resource('publishers', PublisherController::class)->except(['index', 'show']);
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     });
 

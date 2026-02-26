@@ -13,10 +13,9 @@ class PublisherApiController extends Controller
     {
         $query = Publisher::query();
 
-        // 🔍 Search
+        // 🔍 Search (apenas name — notes é criptografado)
         if ($s = $request->get('search')) {
-            $query->where('name', 'like', "%{$s}%")
-                  ->orWhere('notes', 'like', "%{$s}%");
+            $query->where('name', 'like', "%{$s}%");
         }
 
         // 🧭 Sorting

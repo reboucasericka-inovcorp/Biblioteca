@@ -3,21 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
 
 class Author extends Model
 {
     protected $table = 'authors';
     protected $fillable = ['name', 'photo'];
+    protected $appends = ['photo_url'];
 
-    protected function photo(): Attribute
+    public function getPhotoUrlAttribute(): ?string
     {
-        return Attribute::make(
-            get: fn ($value) => $value
-                ? (str_starts_with($value, 'http') ? $value : Storage::disk('public')->path($value))
-                : null,
-        );
+        $path = $this->getRawOriginal('photo');
+        return $path ? Storage::disk('public')->url($path) : null;
     }
 
     public function books()

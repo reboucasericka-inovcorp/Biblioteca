@@ -89,7 +89,7 @@ export default {
         })
         .catch((e) => {
           const msg = e.response?.data?.message || 'Não foi possível requisitar.';
-          alert(msg);
+          window.showToast(msg, 'error');
         });
     },
 

@@ -97,7 +97,7 @@ async function approve(s) {
     await load();
   } catch (e) {
     const msg = e.response?.data?.message ?? 'Erro ao aprovar.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     actionId.value = null;
   }
@@ -110,7 +110,7 @@ async function reject(s) {
     await load();
   } catch (e) {
     const msg = e.response?.data?.message ?? 'Erro ao rejeitar.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     actionId.value = null;
   }

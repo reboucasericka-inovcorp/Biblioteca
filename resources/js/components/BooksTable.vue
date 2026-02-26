@@ -216,7 +216,7 @@ async function requisition(bookId) {
   } catch (e) {
     console.error('Requisition error:', e);
     const msg = e.response?.data?.message || 'Não foi possível requisitar o livro. Tente novamente.';
-    alert(msg);
+    window.showToast(msg, 'error');
   }
 }
 
@@ -254,7 +254,7 @@ async function exportExcel() {
     document.body.removeChild(a);
   } catch (e) {
     console.error('Export error:', e);
-    alert('Export failed. Please try again or check the console.');
+    window.showToast('Export failed. Please try again or check the console.', 'error');
   } finally {
     exporting.value = false;
   }

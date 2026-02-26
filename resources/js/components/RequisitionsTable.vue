@@ -119,7 +119,7 @@
             </td>
             <td v-if="userIsAdmin" class="p-4 whitespace-nowrap">
               <button
-                v-if="r.status === 'active'"
+                v-if="r.status === 'active' || r.status === 'late'"
                 @click="confirmReturn(r.id)"
                 :disabled="confirmingId === r.id"
                 class="btn btn-sm btn-primary"
@@ -239,7 +239,7 @@ async function confirmReturn(requisitionId) {
     await load();
   } catch (e) {
     const msg = e.response?.data?.message ?? 'Erro ao confirmar devolução.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     confirmingId.value = null;
   }

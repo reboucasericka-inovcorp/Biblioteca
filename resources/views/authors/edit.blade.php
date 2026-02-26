@@ -21,9 +21,9 @@
 
                         <div class="mt-4">
                             <x-label for="photo" value="Foto" />
-                            @if($author->photo)
+                            @if($author->photo_url)
                                 <p class="text-sm text-night-blue/70 mt-1">Foto atual:</p>
-                                <img src="{{ asset('storage/' . $author->photo) }}" alt="Foto" class="mt-2 h-32 object-cover rounded">
+                                <img src="{{ $author->photo_url }}" alt="Foto" class="mt-2 h-32 object-cover rounded">
                             @endif
                             <input id="photo" type="file" name="photo" accept="image/*" class="block mt-1 w-full" onchange="previewImage(this, 'photo-preview')">
                             <img id="photo-preview" class="mt-2 h-32 object-cover rounded hidden" src="" alt="Preview">

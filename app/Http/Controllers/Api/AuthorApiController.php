@@ -25,10 +25,6 @@ class AuthorApiController extends Controller
         $query->orderBy($sort, $dir);
 
         $paginator = $query->paginate(10);
-        $paginator->getCollection()->transform(function ($author) {
-            $author->photo_url = $author->photo ? asset('storage/' . $author->getRawOriginal('photo')) : null;
-            return $author;
-        });
 
         return ApiResponse::success($paginator);
     }

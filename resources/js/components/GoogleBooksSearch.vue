@@ -174,7 +174,7 @@ async function importBook(volume) {
   } catch (e) {
     console.error('Import error:', e);
     const msg = e.response?.data?.message ?? 'Erro ao importar. Tente novamente.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     actionId.value = null;
   }
@@ -188,11 +188,11 @@ async function requisitar(volume) {
     if (res.status === 201) {
       emit('requisitioned');
       window.dispatchEvent(new CustomEvent('requisitions-refresh'));
-      showToast('Requisição criada com sucesso.');
+      window.showToast('Requisição criada com sucesso.');
     }
   } catch (e) {
     const msg = e.response?.data?.message ?? 'Erro ao requisitar. Tente novamente.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     actionId.value = null;
   }
@@ -210,21 +210,13 @@ async function sugerirAquisicao(volume) {
     if (res.status === 201) {
       emit('suggested');
       window.dispatchEvent(new CustomEvent('suggestions-refresh'));
-      showToast('Sugestão enviada com sucesso.');
+      window.showToast('Sugestão enviada com sucesso.');
     }
   } catch (e) {
     const msg = e.response?.data?.message ?? 'Erro ao enviar sugestão. Tente novamente.';
-    alert(msg);
+    window.showToast(msg, 'error');
   } finally {
     actionId.value = null;
   }
-}
-
-function showToast(msg) {
-  const toast = document.createElement('div');
-  toast.className = 'alert alert-success shadow-lg fixed bottom-4 right-4 z-50 max-w-sm';
-  toast.innerHTML = `<span>${msg}</span>`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
 }
 </script>
