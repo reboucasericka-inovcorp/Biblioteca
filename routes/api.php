@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PublisherApiController;
 use App\Http\Controllers\Api\RequisitionApiController;
 use App\Http\Controllers\Api\GoogleBooksApiController;
 use App\Http\Controllers\Api\BookSuggestionApiController;
+use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\RequisitionController;
 
 Route::get('/books', [BookApiController::class, 'index']);
@@ -31,6 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/book-suggestions/{bookSuggestion}/approve', [BookSuggestionApiController::class, 'approve'])
         ->middleware('role:Admin');
     Route::patch('/book-suggestions/{bookSuggestion}/reject', [BookSuggestionApiController::class, 'reject'])
+        ->middleware('role:Admin');
+
+    Route::get('/users', [UserApiController::class, 'index'])
+        ->middleware('role:Admin');
+    Route::patch('/users/{user}/role', [UserApiController::class, 'updateRole'])
         ->middleware('role:Admin');
 });
 
