@@ -31,15 +31,41 @@ class BookResource extends JsonResource
             ]),
 
             'cover_url' => $this->cover
-                ? asset('storage/' . $this->cover)
+                ? asset('storage/'.$this->cover)
                 : $this->thumbnail_url,
 
             'is_available' => isset($this->active_requisitions_count)
                 ? $this->active_requisitions_count == 0
                 : $this->resource->isAvailable(),
+            'has_pending_availability_alert' => (bool) ($this->resource->getAttribute('has_pending_availability_alert') ?? false),
+            'has_subscribed_availability_alert' => (bool) ($this->resource->getAttribute('has_subscribed_availability_alert') ?? false),
+            'can_subscribe_availability_alert' => $request->user()?->hasRole('Cidadao') ?? false,
 
-            'has_pdf' => !empty($this->file_path),
+            'has_pdf' => ! empty($this->file_path),
             'can_download' => $this->canDownload($request),
+            'reviews' => $this->whenLoaded('reviews', function () {
+                return $this->reviews->map(fn ($review) => [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'status' => $review->status,
+                    'user' => [
+                        'id' => $review->user?->id,
+                        'name' => $review->user?->name,
+                    ],
+                ]);
+            }, []),
+            'related_books' => collect($this->resource->getAttribute('related_books') ?? [])->map(function ($relatedBook) {
+                return [
+                    'id' => $relatedBook->id,
+                    'title' => $relatedBook->name,
+                    'author' => $relatedBook->authors->first()?->name ?? '-',
+                    'cover_url' => $relatedBook->cover
+                        ? asset('storage/'.$relatedBook->cover)
+                        : $relatedBook->thumbnail_url,
+                    'score' => (int) ($relatedBook->related_score ?? 0),
+                ];
+            })->values(),
         ];
     }
 
@@ -50,7 +76,7 @@ class BookResource extends JsonResource
         }
 
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 

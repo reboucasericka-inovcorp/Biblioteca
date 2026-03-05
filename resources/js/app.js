@@ -13,6 +13,8 @@ import BooksGrid from './components/BooksGrid.vue';
 import GoogleBooksSearch from './components/GoogleBooksSearch.vue';
 import CitizenDashboard from './components/CitizenDashboard.vue';
 import AdminSuggestions from './components/AdminSuggestions.vue';
+import UsersTable from './components/UsersTable.vue';
+import ReviewsTable from './components/ReviewsTable.vue';
 
 const app = createApp({});
 app.component('books-table', BooksTable);
@@ -25,6 +27,8 @@ app.component('books-grid', BooksGrid);
 app.component('google-books-search', GoogleBooksSearch);
 app.component('citizen-dashboard', CitizenDashboard);
 app.component('admin-suggestions', AdminSuggestions);
+app.component('users-table', UsersTable);
+app.component('reviews-table', ReviewsTable);
 
 const el = document.getElementById('app');
 if (el) {

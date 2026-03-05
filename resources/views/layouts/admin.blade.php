@@ -19,7 +19,7 @@
     <div class="min-h-screen">
         {{-- Navbar horizontal (Admin )--}}
         <header class="bg-white shadow-sm border-b border-steel-gray">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center gap-6">
                         <a href="{{ route('dashboard.admin') }}" class="font-bold text-night-blue text-lg">
@@ -40,6 +40,12 @@
                         </a>
                         <a href="{{ route('requisitions.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('requisitions.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
                             Requisições
+                        </a>
+                        <a href="{{ route('users.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('users.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
+                            Utilizadores
+                        </a>
+                        <a href="{{ route('reviews.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('reviews.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
+                            Reviews
                         </a>
                     </nav>
                 </div>
@@ -95,7 +101,7 @@
 
             @if (isset($header))
                 <header class="bg-base-100 shadow-sm border-b border-base-300">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-[1400px] mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
@@ -115,6 +121,8 @@
             <a href="{{ route('authors.index') }}" class="text-base-content/70 text-sm">Autores</a>
             <a href="{{ route('publishers.index') }}" class="text-base-content/70 text-sm">Editoras</a>
             <a href="{{ route('requisitions.index') }}" class="text-base-content/70 text-sm">Requisições</a>
+            <a href="{{ route('users.index') }}" class="text-base-content/70 text-sm">Utilizadores</a>
+            <a href="{{ route('reviews.index') }}" class="text-base-content/70 text-sm">Reviews</a>
         </div>
     </nav>
 

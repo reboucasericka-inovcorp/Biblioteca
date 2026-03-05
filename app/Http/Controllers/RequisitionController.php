@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
+use App\Exceptions\BookUnavailableException;
+use App\Exceptions\UserRequisitionLimitExceededException;
+use App\Mail\RequisitionCreated;
 use App\Models\Requisition;
 use App\Models\User;
-use App\Mail\RequisitionCreated;
+use App\Services\BookAvailabilityAlertService;
+use App\Services\RequisitionService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class RequisitionController extends Controller
 {
+    public function __construct(
+        private readonly RequisitionService $requisitionService,
+        private readonly BookAvailabilityAlertService $bookAvailabilityAlertService
+    ) {}
+
     public function index()
     {
         return view('requisitions.index');
@@ -24,31 +31,15 @@ class RequisitionController extends Controller
         $request->validate(['book_id' => 'required|exists:books,id']);
 
         $user = Auth::user();
-        $book = Book::findOrFail($request->book_id);
-
-        // 🔒 REGRA 1 — Livro já está requisitado?
-        $alreadyRequested = Requisition::where('book_id', $book->id)
-            ->where('status', Requisition::STATUS_ACTIVE)
-            ->exists();
-
-        if ($alreadyRequested) {
-            return ApiResponse::error('Book is not available.', 422);
+        if (! $user) {
+            return ApiResponse::error('Unauthorized.', 401);
         }
 
-        // 🔒 REGRA 2 — Utilizador já tem 3 livros ativos?
-        $activeCount = Requisition::where('user_id', $user->id)
-            ->where('status', Requisition::STATUS_ACTIVE)
-            ->count();
-
-        if ($activeCount >= 3) {
-            return ApiResponse::error('You already have 3 active requisitions.', 422);
+        try {
+            $requisition = $this->requisitionService->createRequisition($user, (int) $request->book_id);
+        } catch (BookUnavailableException|UserRequisitionLimitExceededException $exception) {
+            return ApiResponse::error($exception->getMessage(), 422);
         }
-
-        $requisition = DB::transaction(fn () => Requisition::create([
-            'user_id' => $user->id,
-            'book_id' => $book->id,
-            'photo_path' => $user->profile_photo_path,
-        ]));
 
         $requisition->load(['book', 'user']);
         Mail::to($user->email)->send(new RequisitionCreated($requisition));
@@ -59,9 +50,9 @@ class RequisitionController extends Controller
 
     public function confirmReturn(Requisition $requisition)
     {
-        if (!in_array($requisition->status, [
+        if (! in_array($requisition->status, [
             Requisition::STATUS_ACTIVE,
-            Requisition::STATUS_LATE
+            Requisition::STATUS_LATE,
         ])) {
             return ApiResponse::error('Already returned', 422);
         }
@@ -73,6 +64,11 @@ class RequisitionController extends Controller
             'days_elapsed' => $returnDate->diffInDays($requisition->request_date),
             'status' => Requisition::STATUS_RETURNED,
         ]);
+
+        $book = $requisition->book()->first();
+        if ($book && $book->isAvailable()) {
+            $this->bookAvailabilityAlertService->notifyBookAvailable($book);
+        }
 
         return ApiResponse::success(null, 'Return confirmed');
     }

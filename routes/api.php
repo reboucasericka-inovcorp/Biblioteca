@@ -1,18 +1,19 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BookApiController;
 use App\Http\Controllers\Api\AuthorApiController;
+use App\Http\Controllers\Api\BookApiController;
+use App\Http\Controllers\Api\BookAvailabilityAlertApiController;
+use App\Http\Controllers\Api\BookSuggestionApiController;
+use App\Http\Controllers\Api\GoogleBooksApiController;
 use App\Http\Controllers\Api\PublisherApiController;
 use App\Http\Controllers\Api\RequisitionApiController;
-use App\Http\Controllers\Api\GoogleBooksApiController;
-use App\Http\Controllers\Api\BookSuggestionApiController;
+use App\Http\Controllers\Api\ReviewApiController;
 use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\RequisitionController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/books', [BookApiController::class, 'index']);
-//Route::get('/books/export', [BookApiController::class, 'export']);
+// Route::get('/books/export', [BookApiController::class, 'export']);
 Route::get('/authors', [AuthorApiController::class, 'index']);
 Route::get('/publishers', [PublisherApiController::class, 'index']);
 Route::get('/google-books/search', [GoogleBooksApiController::class, 'search']);
@@ -38,6 +39,16 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role:Admin');
     Route::patch('/users/{user}/role', [UserApiController::class, 'updateRole'])
         ->middleware('role:Admin');
+
+    Route::post('/requisitions/{requisition}/review', [ReviewApiController::class, 'storeForRequisition'])
+        ->middleware('role:Cidadao');
+    Route::get('/reviews', [ReviewApiController::class, 'index'])
+        ->middleware('role:Admin');
+    Route::patch('/reviews/{review}/approve', [ReviewApiController::class, 'approve'])
+        ->middleware('role:Admin');
+    Route::patch('/reviews/{review}/reject', [ReviewApiController::class, 'reject'])
+        ->middleware('role:Admin');
+
+    Route::post('/books/{book}/alerts', [BookAvailabilityAlertApiController::class, 'store'])
+        ->middleware('role:Cidadao');
 });
-
-

@@ -75,6 +75,7 @@
             <th class="min-w-[10rem]">Livro</th>
             <th class="whitespace-nowrap min-w-[6rem]">Data requisição</th>
             <th class="whitespace-nowrap min-w-[6rem]">Data devolução</th>
+            <th class="whitespace-nowrap min-w-[6rem]">Dias decorridos</th>
             <th class="whitespace-nowrap min-w-[5rem]">Status</th>
             <th v-if="userIsAdmin" class="whitespace-nowrap min-w-[10rem]">Ações</th>
           </tr>
@@ -104,6 +105,7 @@
             </td>
             <td class="p-4 text-sm whitespace-nowrap">{{ formatDate(r.request_date) }}</td>
             <td class="p-4 text-sm whitespace-nowrap">{{ formatDate(r.due_date) }}</td>
+            <td class="p-4 text-sm whitespace-nowrap">{{ r.days_elapsed ?? '-' }}</td>
             <td class="p-4 whitespace-nowrap">
               <span
                 class="badge badge-sm"
@@ -129,7 +131,7 @@
             </td>
           </tr>
           <tr v-if="requisitions.length === 0">
-            <td :colspan="userIsAdmin ? 7 : 6" class="p-6 text-center text-sm text-base-content/60">
+            <td :colspan="userIsAdmin ? 8 : 7" class="p-6 text-center text-sm text-base-content/60">
               Nenhuma requisição encontrada.
             </td>
           </tr>

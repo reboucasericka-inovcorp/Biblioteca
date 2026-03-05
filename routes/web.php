@@ -1,17 +1,20 @@
 <?php
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookDownloadController;
-use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
+
     return view('welcome');
 });
 
@@ -43,7 +46,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('books', BookController::class)->except(['index', 'show']);
         Route::resource('authors', AuthorController::class)->except(['index', 'show']);
         Route::resource('publishers', PublisherController::class)->except(['index', 'show']);
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
     });
 
     Route::get('/books/{book}', [BookController::class, 'show'])

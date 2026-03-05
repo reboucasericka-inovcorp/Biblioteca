@@ -44,8 +44,8 @@
 
       <div class="mt-2 flex-shrink-0">
         <button
-          v-if="isLogged && b.is_available"
-          @click="$emit('requisition', b.id)"
+          v-if="b.is_available"
+          @click="handleRequisition(b.id)"
           class="btn btn-xs btn-success w-full"
         >
           Requisitar
@@ -65,10 +65,19 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   books: { type: Array, default: () => [] },
   isLogged: { type: Boolean, default: false },
 });
 
-defineEmits(['requisition']);
+const emit = defineEmits(['requisition']);
+
+function handleRequisition(bookId) {
+  if (!props.isLogged) {
+    window.location.href = '/login';
+    return;
+  }
+
+  emit('requisition', bookId);
+}
 </script>

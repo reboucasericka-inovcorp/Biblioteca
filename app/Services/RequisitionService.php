@@ -30,9 +30,12 @@ class RequisitionService
                 throw new BookUnavailableException('Book not found.');
             }
 
-            // Regra 1: Livro já está requisitado? (mantém critério original: apenas active)
+            // Regra 1: Livro já está requisitado? (active ou late)
             $alreadyRequested = Requisition::where('book_id', $book->id)
-                ->where('status', Requisition::STATUS_ACTIVE)
+                ->whereIn('status', [
+                    Requisition::STATUS_ACTIVE,
+                    Requisition::STATUS_LATE,
+                ])
                 ->exists();
 
             if ($alreadyRequested) {

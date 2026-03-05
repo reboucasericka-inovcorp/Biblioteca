@@ -3,43 +3,35 @@
 namespace App\Exports;
 
 use App\Models\Book;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
-class BooksExport implements FromCollection, WithHeadings, WithMapping
+class BooksExport implements FromQuery, WithHeadings, WithMapping
 {
-    protected $search;
-    protected $sort;
-    protected $dir;
+    public function __construct(
+        protected ?string $search = null,
+        protected string $sort = 'name',
+        protected string $dir = 'asc'
+    ) {}
 
-    public function __construct($search = null, $sort = 'name', $dir = 'asc')
-    {
-        $this->search = $search;
-        $this->sort = $sort;
-        $this->dir = $dir;
-    }
-
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function collection()
+    public function query(): Builder
     {
         $query = Book::with(['publisher', 'authors']);
 
         if ($this->search) {
-            $query->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('isbn', 'like', "%{$this->search}%");
+            $query->where(function (Builder $builder) {
+                $builder->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('isbn', 'like', "%{$this->search}%");
+            });
         }
 
         $query->orderBy($this->sort, $this->dir);
 
-        return $query->get();
+        return $query;
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -52,10 +44,6 @@ class BooksExport implements FromCollection, WithHeadings, WithMapping
         ];
     }
 
-    /**
-     * @param Book $book
-     * @return array
-     */
     public function map($book): array
     {
         return [

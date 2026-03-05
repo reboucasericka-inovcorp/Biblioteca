@@ -31,6 +31,11 @@
                     <x-nav-link href="{{ route('requisitions.index') }}" :active="request()->routeIs('requisitions.*')">
                         {{ __('Requisitions') }}
                     </x-nav-link>
+                    @if (Auth::user()->hasRole('Admin'))
+                        <x-nav-link href="{{ route('reviews.index') }}" :active="request()->routeIs('reviews.*')">
+                            {{ __('Reviews') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>            
 
@@ -170,6 +175,11 @@
             <x-responsive-nav-link href="{{ route('requisitions.index') }}" :active="request()->routeIs('requisitions.*')">
                 {{ __('Requisitions') }}
             </x-responsive-nav-link>
+            @if (Auth::user()->hasRole('Admin'))
+                <x-responsive-nav-link href="{{ route('reviews.index') }}" :active="request()->routeIs('reviews.*')">
+                    {{ __('Reviews') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

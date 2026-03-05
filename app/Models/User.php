@@ -20,10 +20,11 @@ class User extends Authenticatable
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use HasProfilePhoto;
+    use HasRoles;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -69,6 +70,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
     public function requisitions()
     {
         return $this->hasMany(Requisition::class);
@@ -79,8 +81,13 @@ class User extends Authenticatable
         return $this->hasMany(BookSuggestion::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
-    
-
-
+    public function bookAvailabilityAlerts()
+    {
+        return $this->hasMany(BookAvailabilityAlert::class);
+    }
 }

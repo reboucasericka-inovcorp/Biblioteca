@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Requisition extends Model
 {
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_RETURNED = 'returned';
+
     public const STATUS_LATE = 'late';
 
     protected $fillable = [
@@ -19,7 +21,7 @@ class Requisition extends Model
         'return_date',
         'status',
         'days_elapsed',
-        'photo_path'
+        'photo_path',
     ];
 
     protected $casts = [
@@ -44,6 +46,11 @@ class Requisition extends Model
         return $this->belongsTo(Book::class);
     }
 
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Automatic Sequential Generator
@@ -61,7 +68,7 @@ class Requisition extends Model
                 ->lockForUpdate()
                 ->first();
 
-            if (!$last) {
+            if (! $last) {
                 $number = 1;
             } else {
                 $lastNumber = (int) substr($last->sequential_number, -4);

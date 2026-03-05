@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -26,7 +27,9 @@ class UserRoleUpdateTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('Cidadao');
 
-        $response = $this->actingAs($admin)->patchJson("/api/users/{$user->id}/role", [
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson("/api/users/{$user->id}/role", [
             'role' => 'Admin',
         ]);
 
@@ -48,7 +51,9 @@ class UserRoleUpdateTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('Cidadao');
 
-        $response = $this->actingAs($admin)->patchJson("/api/users/{$user->id}/role", [
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson("/api/users/{$user->id}/role", [
             'role' => 'SuperAdmin',
         ]);
 
@@ -63,7 +68,9 @@ class UserRoleUpdateTest extends TestCase
 
         $user = User::factory()->create();
 
-        $response = $this->actingAs($admin)->patchJson("/api/users/{$user->id}/role", []);
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson("/api/users/{$user->id}/role", []);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['role']);

@@ -19,7 +19,7 @@
     <div class="min-h-screen">
         {{-- Navbar horizontal (cidadão) --}}
         <header class="bg-white shadow-sm border-b border-steel-gray">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center gap-6">
                         <a href="{{ route('dashboard.citizen') }}" class="font-bold text-night-blue text-lg">
@@ -60,14 +60,14 @@
 
         @if (isset($header))
             <header class="bg-white border-b border-steel-gray">
-                <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                <div class="max-w-[1400px] mx-auto py-4 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
         @endif
 
         <main class="py-6">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-[1400px] mx-auto sm:px-6 lg:px-8">
                 {{ $slot }}
             </div>
         </main>
