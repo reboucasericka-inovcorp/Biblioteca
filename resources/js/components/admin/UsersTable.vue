@@ -32,28 +32,28 @@
                 <th class="whitespace-nowrap min-w-[8rem]">Nome</th>
                 <th class="whitespace-nowrap min-w-[12rem]">Email</th>
                 <th class="whitespace-nowrap min-w-[10rem]">Role</th>
-                <th class="whitespace-nowrap min-w-[8rem]">Ações</th>
+                <th class="whitespace-nowrap min-w-[12rem]">Ações</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="u in users" :key="u.id">
-                <td class="p-4 text-sm font-medium">{{ u.name }}</td>
-                <td class="p-4 text-sm">{{ u.email }}</td>
-                <td class="p-4">
+              <tr v-for="u in users" :key="u.id" class="align-middle">
+                <td class="px-4 py-2 text-sm font-medium">{{ u.name }}</td>
+                <td class="px-4 py-2 text-sm">{{ u.email }}</td>
+                <td class="px-4 py-2">
                   <span
                     :class="u.role === 'Admin' ? 'badge badge-primary' : 'badge badge-ghost'"
                   >
-                    {{ u.role }}
+                    {{ roleLabel(u.role) }}
                   </span>
                 </td>
-                <td class="p-4">
+                <td class="px-4 py-4">
                   <div class="flex items-center gap-2">
                     <select
                       :value="u.role"
-                      class="select select-bordered select-sm max-w-[8rem]"
+                      class="select select-bordered select-sm min-w-[10.5rem]"
                       @change="updateRole(u, $event)"
                     >
-                      <option value="Admin">Admin</option>
+                      <option value="Admin">Administrador</option>
                       <option value="Cidadao">Cidadão</option>
                     </select>
                     <a
@@ -97,7 +97,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 const users = ref([]);
 const search = ref('');
@@ -124,6 +124,10 @@ async function load() {
 function goToPage(page) {
   currentPage.value = page;
   load();
+}
+
+function roleLabel(role) {
+  return role === 'Admin' ? 'Administrador' : 'Cidadão';
 }
 
 async function updateRole(user, event) {

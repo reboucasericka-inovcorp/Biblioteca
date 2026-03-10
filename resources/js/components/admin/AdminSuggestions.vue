@@ -68,7 +68,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 const suggestions = ref([]);
 const loading = ref(false);

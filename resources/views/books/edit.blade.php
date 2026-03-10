@@ -30,6 +30,23 @@
                         </div>
 
                         <div class="mt-4">
+                            <x-label for="discount" value="Desconto (%)" />
+                            <x-input id="discount" class="block mt-1 w-full" type="number" step="0.01" min="0" max="100" name="discount" :value="old('discount', $book->discount ?? 0)" />
+                        </div>
+
+                        <div class="mt-4">
+                            <x-label for="stock" value="Stock" />
+                            <x-input id="stock" class="block mt-1 w-full" type="number" min="0" name="stock" :value="old('stock', $book->stock ?? 0)" />
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $book->is_active ?? true) ? 'checked' : '' }} class="rounded border-steel-gray text-electric-blue focus:ring-electric-blue">
+                                <span class="text-sm font-medium text-night-blue">Ativo (visível no catálogo)</span>
+                            </label>
+                        </div>
+
+                        <div class="mt-4">
                             <x-label for="publisher_id" value="Editora" />
                             <select id="publisher_id" name="publisher_id" class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-electric-blue" required>
                                 <option value="">Selecione...</option>

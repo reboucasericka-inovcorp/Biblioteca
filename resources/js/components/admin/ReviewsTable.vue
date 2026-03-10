@@ -99,7 +99,7 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 const reviews = ref([]);
 const status = ref('suspended');

@@ -172,7 +172,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { unwrap, unwrapPage } from '../api';
+import { unwrap, unwrapPage } from '../../api';
 
 defineProps({
   userIsAdmin: { type: Boolean, default: false },

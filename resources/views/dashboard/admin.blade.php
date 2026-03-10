@@ -6,6 +6,7 @@
     </x-slot>
     <div id="app">
         <div class="py-3 space-y-6">
+            <sales-dashboard />
             <admin-suggestions />
             <google-books-search :user-is-admin="@json(Auth::user()->hasRole('Admin'))" />
         </div>

@@ -175,7 +175,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 function onBooksRefresh() {
   load(pagination.value.current_page);

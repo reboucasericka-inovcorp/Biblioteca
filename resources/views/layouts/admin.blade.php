@@ -44,13 +44,16 @@
                         <a href="{{ route('users.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('users.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
                             Utilizadores
                         </a>
+                        <a href="{{ route('orders.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('orders.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
+                            Encomendas
+                        </a>
                         <a href="{{ route('reviews.index') }}" class="block px-4 py-2 rounded-lg {{ request()->routeIs('reviews.*') ? 'bg-base-content text-base-100' : 'text-base-content/70 hover:bg-base-content/10 hover:text-base-content' }}">
                             Reviews
                         </a>
                     </nav>
                 </div>
                 <div class="flex items-center gap-2">
-                    <x-dropdown align="right" width="48">
+                    <x-dropdown align="right" width="72">
                         <x-slot name="trigger">
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                 <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-base-content/30 transition">
@@ -71,7 +74,7 @@
                                     <img class="size-10 shrink-0 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                 @endif
                                 <div class="min-w-0 flex-1">
-                                    <div class="font-medium text-base-content truncate">{{ Auth::user()->name }}</div>
+                                    <div class="font-medium text-base-content break-words">{{ Auth::user()->name }}</div>
                                     <div class="text-sm text-base-content/60 break-words">{{ Auth::user()->email }}</div>
                                 </div>
                             </div>

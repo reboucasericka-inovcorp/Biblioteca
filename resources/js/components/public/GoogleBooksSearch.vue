@@ -123,7 +123,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { unwrap } from '../api';
+import { unwrap } from '../../api';
 
 const props = defineProps({
   userIsAdmin: { type: Boolean, default: false },

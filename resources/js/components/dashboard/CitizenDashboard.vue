@@ -71,7 +71,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 const suggestions = ref([]);
 const suggestionsLoading = ref(false);

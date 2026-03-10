@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { unwrapPage } from '../api';
+import { unwrapPage } from '../../api';
 
 defineProps({
   userIsAdmin: { type: Boolean, default: false },
