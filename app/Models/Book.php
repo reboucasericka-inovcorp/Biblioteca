@@ -14,8 +14,15 @@ class Book extends Model
         'isbn',
         'isbn_13',
         'price',
+        'discount',
+        'stock',
+        'reserved_stock',
+        'is_active',
         'publisher_id',
         'bibliography',
+        'pages',
+        'language',
+        'dimensions',
         'cover',
         'google_volume_id',
         'thumbnail_url',
@@ -25,6 +32,8 @@ class Book extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'is_active' => 'boolean',
     ];
 
     // Criptografar campos sensíveis
@@ -79,5 +88,16 @@ class Book extends Model
                 Requisition::STATUS_LATE,
             ])
             ->exists();
+    }
+
+    /**
+     * Stock disponível para venda (stock físico menos reservas temporárias de checkout).
+     */
+    public function getAvailableStockAttribute(): int
+    {
+        $stock = (int) ($this->attributes['stock'] ?? 0);
+        $reserved = (int) ($this->attributes['reserved_stock'] ?? 0);
+
+        return max(0, $stock - $reserved);
     }
 }

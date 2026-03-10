@@ -22,7 +22,8 @@ class BookApiController extends Controller
 
     public function index(Request $request)
     {
-        $query = Book::with(['publisher', 'authors'])
+        $query = Book::where('is_active', true)
+            ->with(['publisher', 'authors'])
             ->withCount(['requisitions as active_requisitions_count' => fn ($q) => $q->whereIn('status', [
                 Requisition::STATUS_ACTIVE,
                 Requisition::STATUS_LATE,
@@ -47,14 +48,15 @@ class BookApiController extends Controller
             });
         }
 
-        // 🧭 Sorting (recent usa created_at por defeito)
-        $sort = $request->get('sort', $type === 'recent' ? 'created_at' : 'name');
-        $dir = $request->get('dir', $type === 'recent' ? 'desc' : 'asc');
+        // 🧭 Sorting (recent e featured: created_at desc por defeito)
+        $sort = $request->get('sort', in_array($type, ['recent', 'featured']) ? 'created_at' : 'name');
+        $dir = $request->get('dir', in_array($type, ['recent', 'featured']) ? 'desc' : 'asc');
         $query->orderBy($sort, $dir);
 
-        // Home/recent: lista simples não paginada (até 8 itens)
-        if (in_array($type, ['recent', 'tech'])) {
-            $limit = min((int) $request->get('per_page', 8), 20);
+        // Home: lista simples não paginada (recent, tech, featured)
+        if (in_array($type, ['recent', 'tech', 'featured'])) {
+            $defaultLimit = $type === 'featured' ? 6 : ($type === 'recent' ? 30 : 6);
+            $limit = min((int) $request->get('per_page', $defaultLimit), $type === 'recent' ? 30 : 20);
             $books = $query->limit($limit)->get();
 
             return ApiResponse::success(BookResource::collection($books));
@@ -70,6 +72,10 @@ class BookApiController extends Controller
 
     public function show(Request $request, Book $book)
     {
+        if (! $book->is_active) {
+            abort(404);
+        }
+
         $book->load([
             'publisher',
             'authors',

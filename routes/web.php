@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\BookDownloadController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
@@ -17,6 +18,11 @@ Route::get('/', function () {
 
     return view('welcome');
 });
+
+Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+Route::view('/cart', 'cart.index')->name('cart.index');
+Route::view('/checkout', 'checkout.index')->name('checkout.index');
+Route::view('/checkout/success', 'checkout.success')->name('checkout.success');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/citizen', function () {
@@ -48,12 +54,12 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('publishers', PublisherController::class)->except(['index', 'show']);
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
     });
 
-    Route::get('/books/{book}', [BookController::class, 'show'])
-        ->name('books.show');
     Route::get('/books/{book}/download', [BookDownloadController::class, 'download'])
         ->middleware('auth:sanctum')
         ->name('books.download');

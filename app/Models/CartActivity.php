@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CartActivity extends Model
+{
+    public $timestamps = false;
+
+    protected $fillable = ['user_id', 'updated_at'];
+
+    protected $casts = [
+        'updated_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

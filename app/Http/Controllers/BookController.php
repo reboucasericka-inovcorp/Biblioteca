@@ -55,7 +55,10 @@ class BookController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'isbn' => 'required|string|unique:books',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'stock' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
@@ -78,6 +81,9 @@ class BookController extends Controller
             'name' => $request->name,
             'isbn' => $request->isbn,
             'price' => $request->price,
+            'discount' => $request->input('discount', 0),
+            'stock' => $request->input('stock', 0),
+            'is_active' => $request->boolean('is_active'),
             'publisher_id' => $request->publisher_id,
             'bibliography' => $request->bibliography,
             'cover' => $coverPath,
@@ -96,7 +102,10 @@ class BookController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'isbn' => 'required|string|unique:books,isbn,' . $book->id,
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'stock' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
@@ -105,7 +114,8 @@ class BookController extends Controller
             'authors.*' => 'exists:authors,id',
         ]);
 
-        $data = $request->only(['name', 'isbn', 'price', 'publisher_id', 'bibliography']);
+        $data = $request->only(['name', 'isbn', 'price', 'discount', 'stock', 'publisher_id', 'bibliography']);
+        $data['is_active'] = $request->boolean('is_active');
 
         if ($request->hasFile('cover')) {
             if ($book->cover) {

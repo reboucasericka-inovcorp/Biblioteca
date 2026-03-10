@@ -12,6 +12,7 @@ class BookResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'title' => $this->name,
             'name' => $this->name,
             'isbn' => $this->isbn,
             'isbn_13' => $this->isbn_13,
@@ -19,6 +20,12 @@ class BookResource extends JsonResource
             'bibliography' => $this->bibliography,
             'published_date' => $this->published_date,
             'price' => $this->price,
+            'discount' => $this->discount ?? 0,
+            'stock' => (int) ($this->stock ?? 0),
+            'available_stock' => (int) $this->resource->available_stock,
+            'pages' => $this->pages,
+            'language' => $this->language,
+            'dimensions' => $this->dimensions,
 
             'publisher' => [
                 'id' => $this->publisher?->id,

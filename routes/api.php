@@ -4,7 +4,11 @@ use App\Http\Controllers\Api\AuthorApiController;
 use App\Http\Controllers\Api\BookApiController;
 use App\Http\Controllers\Api\BookAvailabilityAlertApiController;
 use App\Http\Controllers\Api\BookSuggestionApiController;
+use App\Http\Controllers\Api\CartActivityController;
+use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GoogleBooksApiController;
+use App\Http\Controllers\Api\OrderApiController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\PublisherApiController;
 use App\Http\Controllers\Api\RequisitionApiController;
 use App\Http\Controllers\Api\ReviewApiController;
@@ -13,13 +17,14 @@ use App\Http\Controllers\RequisitionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/books', [BookApiController::class, 'index']);
-// Route::get('/books/export', [BookApiController::class, 'export']);
+Route::get('/books/{book}', [BookApiController::class, 'show']);
 Route::get('/authors', [AuthorApiController::class, 'index']);
 Route::get('/publishers', [PublisherApiController::class, 'index']);
 Route::get('/google-books/search', [GoogleBooksApiController::class, 'search']);
+Route::post('/checkout', [CheckoutController::class, 'checkout']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/books/{book}', [BookApiController::class, 'show']);
     Route::get('/requisitions/stats', [RequisitionApiController::class, 'stats']);
     Route::get('/requisitions', [RequisitionApiController::class, 'index']);
     Route::post('/requisitions', [RequisitionController::class, 'store']);
@@ -42,6 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/requisitions/{requisition}/review', [ReviewApiController::class, 'storeForRequisition'])
         ->middleware('role:Cidadao');
+    Route::get('/orders', [OrderApiController::class, 'index'])
+        ->middleware('role:Admin');
+    Route::get('/orders/stats', [OrderApiController::class, 'stats'])
+        ->middleware('role:Admin');
     Route::get('/reviews', [ReviewApiController::class, 'index'])
         ->middleware('role:Admin');
     Route::patch('/reviews/{review}/approve', [ReviewApiController::class, 'approve'])
@@ -51,4 +60,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/books/{book}/alerts', [BookAvailabilityAlertApiController::class, 'store'])
         ->middleware('role:Cidadao');
+    Route::post('/cart/activity', [CartActivityController::class, 'store']);
 });
