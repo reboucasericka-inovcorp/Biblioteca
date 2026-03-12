@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use App\Models\BookAvailabilityAlert;
+use App\Models\Favorite;
 use App\Models\Requisition;
 use App\Models\Review;
 use App\Services\RelatedBooksService;
@@ -36,6 +37,12 @@ class BookApiController extends Controller
                     ->orWhere('isbn', 'like', "%{$s}%")
                     ->orWhereHas('authors', fn ($aq) => $aq->where('name', 'like', "%{$s}%"));
             });
+        }
+
+        // 📂 Filtro por categoria (slug)
+        $category = $request->get('category');
+        if ($category) {
+            $query->whereHas('categories', fn ($q) => $q->where('slug', $category));
         }
 
         // 📂 Type (recent = últimos, tech = categoria tecnologia)
@@ -112,6 +119,13 @@ class BookApiController extends Controller
 
             $book->setAttribute('has_subscribed_availability_alert', (bool) $alert);
             $book->setAttribute('has_pending_availability_alert', (bool) ($alert && $alert->notified_at === null));
+
+            $isFavorite = Favorite::where('user_id', $user->id)
+                ->where('book_id', $book->id)
+                ->exists();
+            $book->setAttribute('is_favorite', $isFavorite);
+        } else {
+            $book->setAttribute('is_favorite', false);
         }
 
         return ApiResponse::success(new BookResource($book));

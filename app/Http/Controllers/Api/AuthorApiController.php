@@ -18,10 +18,9 @@ class AuthorApiController extends Controller
             $query->where('name', 'like', "%{$s}%");
         }
 
-        // 🧭 Sorting
-        $sort = $request->get('sort', 'name');
-        $dir  = $request->get('dir', 'asc');
-
+        // 🧭 Sorting (default: mais recentes primeiro para novos autores aparecerem na primeira página)
+        $sort = $request->get('sort', 'id');
+        $dir  = $request->get('dir', 'desc');
         $query->orderBy($sort, $dir);
 
         $paginator = $query->paginate(10);

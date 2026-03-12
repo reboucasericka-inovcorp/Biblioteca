@@ -80,6 +80,11 @@ class Book extends Model
         return $this->hasMany(BookAvailabilityAlert::class);
     }
 
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'book_category');
+    }
+
     public function isAvailable(): bool
     {
         return ! $this->requisitions()

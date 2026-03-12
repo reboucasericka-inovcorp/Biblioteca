@@ -41,13 +41,15 @@ class BookResource extends JsonResource
                 ? asset('storage/'.$this->cover)
                 : $this->thumbnail_url,
 
-            'is_available' => isset($this->active_requisitions_count)
+            'is_available' => (isset($this->active_requisitions_count)
                 ? $this->active_requisitions_count == 0
-                : $this->resource->isAvailable(),
+                : $this->resource->isAvailable())
+                && $this->resource->available_stock > 0,
             'has_pending_availability_alert' => (bool) ($this->resource->getAttribute('has_pending_availability_alert') ?? false),
             'has_subscribed_availability_alert' => (bool) ($this->resource->getAttribute('has_subscribed_availability_alert') ?? false),
             'can_subscribe_availability_alert' => $request->user()?->hasRole('Cidadao') ?? false,
 
+            'is_favorite' => (bool) ($this->resource->getAttribute('is_favorite') ?? false),
             'has_pdf' => ! empty($this->file_path),
             'can_download' => $this->canDownload($request),
             'reviews' => $this->whenLoaded('reviews', function () {

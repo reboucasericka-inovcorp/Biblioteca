@@ -27,6 +27,10 @@ class CheckoutController extends Controller
             'items' => 'required|array|min:1',
             'items.*.book_id' => 'required|integer|exists:books,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'shipping_address' => 'required|string|max:255',
+            'shipping_city' => 'required|string|max:100',
+            'shipping_postal_code' => 'required|string|max:20',
+            'shipping_country' => 'required|string|size:2',
         ]);
 
         if ($validator->fails()) {
@@ -79,13 +83,19 @@ class CheckoutController extends Controller
         }
 
         $user = $request->user();
-        $order = DB::transaction(function () use ($user, $orderTotal, $validatedLines) {
-            $order = Order::create([
+        $shipping = [
+            'shipping_address' => $request->input('shipping_address'),
+            'shipping_city' => $request->input('shipping_city'),
+            'shipping_postal_code' => $request->input('shipping_postal_code'),
+            'shipping_country' => strtoupper($request->input('shipping_country')),
+        ];
+        $order = DB::transaction(function () use ($user, $orderTotal, $validatedLines, $shipping) {
+            $order = Order::create(array_merge([
                 'user_id' => $user?->id,
                 'email' => $user?->email ?? request()->input('email'),
                 'total' => round($orderTotal, 2),
                 'status' => Order::STATUS_PENDING,
-            ]);
+            ], $shipping));
 
             OrderEvent::create([
                 'order_id' => $order->id,

@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Api\AuthorApiController;
 use App\Http\Controllers\Api\BookApiController;
+use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\BookAvailabilityAlertApiController;
 use App\Http\Controllers\Api\BookSuggestionApiController;
 use App\Http\Controllers\Api\CartActivityController;
 use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\GoogleBooksApiController;
 use App\Http\Controllers\Api\OrderApiController;
 use App\Http\Controllers\Api\StripeWebhookController;
@@ -16,12 +18,13 @@ use App\Http\Controllers\Api\UserApiController;
 use App\Http\Controllers\RequisitionController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/categories', [CategoryApiController::class, 'index']);
 Route::get('/books', [BookApiController::class, 'index']);
 Route::get('/books/{book}', [BookApiController::class, 'show']);
 Route::get('/authors', [AuthorApiController::class, 'index']);
 Route::get('/publishers', [PublisherApiController::class, 'index']);
 Route::get('/google-books/search', [GoogleBooksApiController::class, 'search']);
-Route::post('/checkout', [CheckoutController::class, 'checkout']);
+Route::middleware('auth:sanctum')->post('/checkout', [CheckoutController::class, 'checkout']);
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -61,4 +64,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/books/{book}/alerts', [BookAvailabilityAlertApiController::class, 'store'])
         ->middleware('role:Cidadao');
     Route::post('/cart/activity', [CartActivityController::class, 'store']);
+
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'store']);
+    Route::delete('/books/{book}/favorite', [FavoriteController::class, 'destroy']);
 });

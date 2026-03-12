@@ -19,6 +19,10 @@ class Order extends Model
         'total',
         'status',
         'stripe_session_id',
+        'shipping_address',
+        'shipping_city',
+        'shipping_postal_code',
+        'shipping_country',
     ];
 
     protected $casts = [
