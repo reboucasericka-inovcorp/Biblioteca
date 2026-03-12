@@ -162,6 +162,8 @@ class BookSeeder extends Seeder
                     'bibliography' => $data['bibliography'],
                     'price' => $data['price'],
                     'publisher_id' => $pub->id,
+                    'stock' => rand(5, 20),
+                    'reserved_stock' => 0,
                 ]
             );
 
