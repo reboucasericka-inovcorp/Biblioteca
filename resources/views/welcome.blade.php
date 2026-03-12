@@ -103,7 +103,6 @@
     </script>
 
 
-
   
     
     <!--
@@ -115,7 +114,7 @@
         <div class="max-w-[1700px] mx-auto px-6">
             <h2 class="text-[#000020] text-2xl font-semibold mb-4 uppercase tracking-wide">Principais Categorias</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9">
-                <a href="@auth {{ route('profile') }} @else {{ route('login') }} @endauth" class="bg-[#000020] text-white text-xs text-center px-3 py-3 border border-white/20 hover:bg-[#1e40af]">Minha Conta</a>
+                <a href="@auth {{ route('profile.show') }} @else {{ route('login') }} @endauth" class="bg-[#000020] text-white text-xs text-center px-3 py-3 border border-white/20 hover:bg-[#1e40af]">Minha Conta</a>
                 <a href="#" class="bg-[#000020] text-white text-xs text-center px-3 py-3 border border-white/20 hover:bg-[#1e40af]">Lançamentos</a>
                 <a href="#" class="bg-[#000020] text-white text-xs text-center px-3 py-3 border border-white/20 hover:bg-[#1e40af]">Programação</a>
                 <a href="#" class="bg-[#000020] text-white text-xs text-center px-3 py-3 border border-white/20 hover:bg-[#1e40af]">Inteligência Artificial</a>

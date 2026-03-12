@@ -1,17 +1,14 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-night-blue leading-tight">
-            Encomendas
+        <h2 class="font-semibold text-xl text-gray-900 leading-tight">
+            Pedidos
         </h2>
     </x-slot>
-
-    <div id="app">
-        <div class="py-3">
-            <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8 w-full">
-                <div class="bg-white p-6 rounded shadow border border-steel-gray/50">
-                    <orders-table />
-                </div>
+    <div class="space-y-6">
+        <div class="card shadow bg-base-100">
+            <div class="card-body p-6">
+                <orders-table />
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

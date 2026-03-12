@@ -67,7 +67,7 @@
     <div class="card bg-base-100 shadow">
       <div class="card-body p-6">
     <div class="overflow-x-auto">
-      <table class="table table-zebra w-full">
+      <table class="table table-zebra table-lg w-full">
         <thead>
           <tr>
             <th class="whitespace-nowrap min-w-[6rem]">Nº</th>

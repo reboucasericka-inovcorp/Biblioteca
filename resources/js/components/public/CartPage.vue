@@ -14,7 +14,9 @@
             <tr>
               <th class="w-20">Capa</th>
               <th>Título</th>
-              <th class="text-right">Preço</th>
+              <th class="text-right">Preço original</th>
+              <th class="text-center w-24">Desconto</th>
+              <th class="text-right">Preço final</th>
               <th class="w-32 text-center">Quantidade</th>
               <th class="text-right">Subtotal</th>
               <th class="w-20"></th>
@@ -34,7 +36,15 @@
               <td>
                 <a :href="`/books/${item.book_id}`" class="link link-hover font-medium">{{ item.title }}</a>
               </td>
-              <td class="text-right">{{ formatPrice(item.price) }}</td>
+              <td class="text-right">
+                <span v-if="itemDiscount(item) > 0" class="text-base-content/60 line-through text-sm">{{ formatPrice(itemPriceOriginal(item)) }}</span>
+                <span v-else>{{ formatPrice(itemPriceOriginal(item)) }}</span>
+              </td>
+              <td class="text-center">
+                <span v-if="itemDiscount(item) > 0" class="text-success font-medium">{{ itemDiscount(item) }}%</span>
+                <span v-else class="text-base-content/40">—</span>
+              </td>
+              <td class="text-right font-medium">{{ formatPrice(itemPriceFinal(item)) }}</td>
               <td class="text-center">
                 <div class="flex items-center justify-center gap-1">
                   <button
@@ -57,7 +67,7 @@
                   </button>
                 </div>
               </td>
-              <td class="text-right font-medium">{{ formatPrice(item.price * item.quantity) }}</td>
+              <td class="text-right font-medium">{{ formatPrice(itemPriceFinal(item) * item.quantity) }}</td>
               <td>
                 <button
                   type="button"
@@ -73,14 +83,37 @@
         </table>
       </div>
 
-      <div class="mt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div class="text-lg font-semibold text-base-content">
-          Total: {{ formatPrice(totalAmount) }}
+      <!-- Resumo: Subtotal, Desconto total, Portes, Total -->
+      <div class="mt-8 flex flex-col md:flex-row justify-between items-stretch md:items-end gap-6">
+        <div class="card bg-base-200/50 rounded-lg p-4 max-w-sm w-full">
+          <h3 class="font-semibold text-base-content mb-3">Resumo do carrinho</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex justify-between">
+              <span class="text-base-content/70">Subtotal</span>
+              <span>{{ formatPrice(subtotal) }}</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-base-content/70">Desconto total</span>
+              <span class="text-success font-medium">− {{ formatPrice(totalSavings) }}</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="text-base-content/70">Portes de envio</span>
+              <span class="text-success font-medium">Portes gratuitos</span>
+            </li>
+            <li class="flex justify-between pt-2 border-t border-base-300 font-semibold text-base">
+              <span>Total final</span>
+              <span>{{ formatPrice(totalAmount) }}</span>
+            </li>
+          </ul>
         </div>
-        <div class="flex gap-2">
-          <button type="button" class="btn btn-ghost" @click="clearCart">Esvaziar carrinho</button>
-          <a href="/" class="btn btn-outline">Continuar a comprar</a>
-          <a href="/checkout" class="btn btn-primary">Checkout</a>
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <a href="/" class="btn btn-ghost btn-sm sm:btn-md">
+            ← Continuar a comprar
+          </a>
+          <div class="flex gap-2">
+            <button type="button" class="btn btn-outline" @click="clearCart">Esvaziar carrinho</button>
+            <a href="/checkout" class="btn btn-primary">Checkout →</a>
+          </div>
         </div>
       </div>
     </template>
@@ -93,8 +126,31 @@ import { CartService } from '../../services/CartService.js';
 
 const cart = ref([]);
 
+function itemDiscount(item) {
+  const d = item.discount ?? 0;
+  return Number(d);
+}
+
+function itemPriceOriginal(item) {
+  return Number(item.price ?? 0);
+}
+
+function itemPriceFinal(item) {
+  const p = itemPriceOriginal(item);
+  const d = itemDiscount(item) / 100;
+  return Math.round(p * (1 - d) * 100) / 100;
+}
+
+const subtotal = computed(() =>
+  cart.value.reduce((sum, i) => sum + itemPriceOriginal(i) * (i.quantity || 1), 0)
+);
+
 const totalAmount = computed(() =>
-  cart.value.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0)
+  cart.value.reduce((sum, i) => sum + itemPriceFinal(i) * (i.quantity || 1), 0)
+);
+
+const totalSavings = computed(() =>
+  Math.round((subtotal.value - totalAmount.value) * 100) / 100
 );
 
 function refreshCart() {

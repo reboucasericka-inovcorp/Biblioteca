@@ -1,16 +1,19 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-night-blue leading-tight">
-            Gestão de Utilizadores
-        </h2>
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h2 class="font-semibold text-xl text-gray-900 leading-tight">
+                Gestão de Utilizadores
+            </h2>
+            <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-md shadow hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                Criar utilizador
+            </a>
+        </div>
     </x-slot>
-    <div id="app">
-        <div class="py-3">
-            <div class="max-w-[1600px] mx-auto sm:px-6 lg:px-8 w-full">
-                <div class="bg-white p-6 rounded shadow border border-steel-gray/50">
-                    <users-table />
-                </div>
+    <div class="space-y-6">
+        <div class="card shadow bg-base-100">
+            <div class="card-body p-6">
+                <users-table />
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

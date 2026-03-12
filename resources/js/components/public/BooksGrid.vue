@@ -19,7 +19,7 @@
         class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200"
         :class="{ 'opacity-100 text-error': isFavorite(b.id) }"
         :aria-label="isFavorite(b.id) ? 'Remover dos favoritos' : 'Marcar como favorito'"
-        @click="toggleFavorite(b.id)"
+        @click="toggleFavorite(b.id, b)"
       >
         <span class="text-lg">{{ isFavorite(b.id) ? '♥' : '♡' }}</span>
       </button>
@@ -89,8 +89,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, watch } from 'vue';
 import { CartService } from '../../services/CartService.js';
+import { useCartStore } from '../../stores/cartStore.js';
+import { useFavoritesStore } from '../../stores/favoritesStore.js';
 
 const props = defineProps({
   books: { type: Array, default: () => [] },
@@ -99,7 +101,16 @@ const props = defineProps({
 
 const emit = defineEmits(['requisition', 'add-to-cart']);
 
-const favorites = ref(new Set());
+const cartStore = useCartStore();
+const favoritesStore = useFavoritesStore();
+
+function loadFavorites() {
+  if (!props.isLogged) return;
+  favoritesStore.loadFavorites();
+}
+
+onMounted(loadFavorites);
+watch(() => props.isLogged, loadFavorites);
 
 const coverPlaceholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect fill='%23e5e7eb' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14' font-family='sans-serif'%3ESem capa%3C/text%3E%3C/svg%3E";
 
@@ -161,17 +172,22 @@ function formatPrice(value) {
 }
 
 function isFavorite(bookId) {
-  return favorites.value.has(bookId);
+  return favoritesStore.isFavorite(bookId);
 }
 
-function toggleFavorite(bookId) {
-  const next = new Set(favorites.value);
-  if (next.has(bookId)) {
-    next.delete(bookId);
-  } else {
-    next.add(bookId);
+async function toggleFavorite(bookId, book = null) {
+  if (!props.isLogged) {
+    window.location.href = '/login';
+    return;
   }
-  favorites.value = next;
+  const wasFavorite = favoritesStore.isFavorite(bookId);
+  const action = wasFavorite ? favoritesStore.removeFavorite(bookId) : favoritesStore.addFavorite(bookId, book);
+  const result = await action;
+  if (result?.success && window.showToast) {
+    window.showToast(wasFavorite ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.', 'success');
+  } else if (!result?.success && window.showToast) {
+    window.showToast('Não foi possível atualizar os favoritos.', 'error');
+  }
 }
 
 function availableStock(book) {
@@ -186,6 +202,7 @@ function addToCart(book) {
     if (window.showToast) window.showToast(result.message ?? 'Stock insuficiente', 'error');
     return;
   }
+  cartStore.syncCartCount();
   if (window.showToast) window.showToast('Livro adicionado ao carrinho.', 'success');
   emit('add-to-cart', book);
   emit('requisition', book.id);

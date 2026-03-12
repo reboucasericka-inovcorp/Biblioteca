@@ -1,45 +1,48 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-night-blue leading-tight">
-            Criar Editora
-        </h2>
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h2 class="font-semibold text-xl text-gray-900 leading-tight">
+                Criar Editora
+            </h2>
+            <a href="{{ route('publishers.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                ← Voltar
+            </a>
+        </div>
     </x-slot>
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <x-validation-errors class="mb-4" />
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-6">
+                <x-validation-errors class="mb-4" />
 
-                    <form method="POST" action="{{ route('publishers.store') }}" enctype="multipart/form-data">
-                        @csrf
+                <form method="POST" action="{{ route('publishers.store') }}" enctype="multipart/form-data">
+                    @csrf
 
+                    <div class="space-y-4 max-w-xl">
                         <div>
                             <x-label for="name" value="Nome" />
                             <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
                         </div>
 
-                        <div class="mt-4">
+                        <div>
                             <x-label for="notes" value="Notas" />
-                            <textarea id="notes" name="notes" rows="4" class="block mt-1 w-full border-steel-gray rounded-md shadow-sm focus:ring-electric-blue focus:border-electric-blue">{{ old('notes') }}</textarea>
+                            <textarea id="notes" name="notes" rows="4" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('notes') }}</textarea>
                         </div>
 
-                        <div class="mt-4">
+                        <div>
                             <x-label for="logo" value="Logo" />
-                            <input id="logo" type="file" name="logo" accept="image/*" class="block mt-1 w-full" onchange="previewImage(this, 'logo-preview')">
-                            <img id="logo-preview" class="mt-2 h-32 object-contain rounded hidden" src="" alt="Preview">
+                            <input id="logo" type="file" name="logo" accept="image/*" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100" onchange="previewImage(this, 'logo-preview')">
+                            <img id="logo-preview" class="mt-2 h-32 object-contain rounded hidden border border-gray-200" src="" alt="Preview">
                         </div>
+                    </div>
 
-                        <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('publishers.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-steel-gray rounded-md font-semibold text-xs text-night-blue uppercase tracking-widest shadow-sm hover:bg-steel-gray/20 focus:outline-none focus:ring-2 focus:ring-electric-blue focus:ring-offset-2 transition ease-in-out duration-150">
-                                Cancelar
-                            </a>
-                            <x-button type="submit">Criar</x-button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="flex flex-wrap items-center justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+                        <a href="{{ route('publishers.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition">
+                            Cancelar
+                        </a>
+                        <x-button type="submit">Criar</x-button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
     <script>
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
@@ -55,4 +58,4 @@
             }
         }
     </script>
-</x-app-layout>
+</x-admin-layout>

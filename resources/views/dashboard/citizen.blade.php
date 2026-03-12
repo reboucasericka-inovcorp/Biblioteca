@@ -4,9 +4,7 @@
             Bem vindo {{ auth()->user()->name }}
         </h2>
     </x-slot>
-    <div id="app">
-        <div class="py-3">
-            <citizen-dashboard />
-        </div>
+    <div class="py-3">
+        <citizen-dashboard />
     </div>
 </x-app-layout>

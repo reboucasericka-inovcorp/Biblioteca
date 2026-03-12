@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
         <div class="flex flex-wrap items-center gap-4">
           <select v-model="status" class="select select-bordered h-10 min-w-[140px] bg-base-100">
             <option value="">Todos</option>
@@ -14,9 +14,9 @@
     </div>
 
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
         <div class="overflow-x-auto">
-          <table class="table table-zebra w-full">
+          <table class="table table-zebra table-lg w-full">
             <thead>
               <tr>
                 <th>ID</th>

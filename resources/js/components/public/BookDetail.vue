@@ -201,6 +201,8 @@
 <script>
 import { unwrap } from '../../api';
 import { CartService } from '../../services/CartService.js';
+import { useCartStore } from '../../stores/cartStore.js';
+import { useFavoritesStore } from '../../stores/favoritesStore.js';
 
 export default {
   props: {
@@ -259,7 +261,6 @@ export default {
 
   mounted() {
     this.fetchBook();
-    this.loadFavoriteState();
   },
 
   methods: {
@@ -290,6 +291,7 @@ export default {
       try {
         const res = await window.axios.get(`/api/books/${this.bookId}`, { withCredentials: true });
         this.book = unwrap(res) ?? {};
+        this.isFavorite = this.book.is_favorite === true;
       } catch (e) {
         this.book = {};
       } finally {
@@ -303,6 +305,7 @@ export default {
         if (window.showToast) window.showToast(result.message ?? 'Stock insuficiente', 'error');
         return;
       }
+      useCartStore().syncCartCount();
       if (window.showToast) window.showToast('Livro adicionado ao carrinho.', 'success');
     },
 
@@ -323,23 +326,24 @@ export default {
         });
     },
 
-    toggleFavorite() {
-      this.isFavorite = !this.isFavorite;
-      const key = `book_favorite_${this.bookId}`;
-      try {
-        if (this.isFavorite) {
-          window.localStorage.setItem(key, '1');
-        } else {
-          window.localStorage.removeItem(key);
+    async toggleFavorite() {
+      if (document.body.dataset.auth !== '1') {
+        window.location.href = '/login';
+        return;
+      }
+      const store = useFavoritesStore();
+      const wasFavorite = this.isFavorite;
+      const result = wasFavorite
+        ? await store.removeFavorite(Number(this.bookId))
+        : await store.addFavorite(Number(this.bookId), this.book);
+      if (result?.success) {
+        this.isFavorite = store.isFavorite(Number(this.bookId));
+        if (window.showToast) {
+          window.showToast(this.isFavorite ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'success');
         }
-      } catch (_) {}
-    },
-
-    loadFavoriteState() {
-      try {
-        const key = `book_favorite_${this.bookId}`;
-        this.isFavorite = window.localStorage.getItem(key) === '1';
-      } catch (_) {}
+      } else {
+        if (window.showToast) window.showToast('Não foi possível atualizar os favoritos.', 'error');
+      }
     },
 
     download() {

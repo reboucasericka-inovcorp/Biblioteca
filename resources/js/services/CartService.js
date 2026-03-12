@@ -32,6 +32,7 @@ export const CartService = {
     const cart = this.getCart();
     const title = book.title ?? book.name;
     const price = typeof book.price === 'number' ? book.price : parseFloat(book.price) || 0;
+    const discount = typeof book.discount === 'number' ? book.discount : parseFloat(book.discount) || 0;
     const existing = cart.find((i) => i.book_id === book.id);
 
     if (existing) {
@@ -40,6 +41,7 @@ export const CartService = {
         return { success: false, message: 'Stock insuficiente' };
       }
       existing.quantity = nextQty;
+      existing.discount = discount;
       if (stock != null) existing.stock = stock;
       if (book.available_stock != null) existing.available_stock = Number(book.available_stock);
     } else {
@@ -47,6 +49,7 @@ export const CartService = {
         book_id: book.id,
         title: title ?? '—',
         price,
+        discount,
         cover: book.cover_url ?? book.cover ?? null,
         quantity: 1,
         stock: stock ?? null,

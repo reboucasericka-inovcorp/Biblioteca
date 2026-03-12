@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-4">
-    <!-- Barra de filtros + Criar -->
+    <!-- Barra de filtros -->
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
         <div class="flex flex-wrap items-center gap-4">
       <input
         v-model="search"
@@ -17,22 +17,15 @@
         <option value="asc">ASC</option>
         <option value="desc">DESC</option>
       </select>
-      <a
-        v-if="userIsAdmin"
-        href="/publishers/create"
-        class="btn btn-primary"
-      >
-        Criar Editora
-      </a>
         </div>
       </div>
     </div>
 
     <!-- Tabela -->
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
     <div class="overflow-x-auto">
-      <table class="table table-zebra w-full">
+      <table class="table table-zebra table-lg w-full">
         <thead>
           <tr>
             <th>Logo</th>
@@ -86,6 +79,32 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Paginação -->
+    <div
+      v-if="pagination.last_page > 1"
+      class="flex items-center justify-between pt-4"
+    >
+      <p class="text-sm text-base-content/70">
+        Página {{ pagination.current_page }} de {{ pagination.last_page }} ({{ pagination.total }} editoras)
+      </p>
+      <div class="flex gap-2">
+        <button
+          :disabled="pagination.current_page <= 1"
+          @click="loadPage(pagination.current_page - 1)"
+          class="btn btn-sm btn-ghost disabled:opacity-50"
+        >
+          Anterior
+        </button>
+        <button
+          :disabled="pagination.current_page >= pagination.last_page"
+          @click="loadPage(pagination.current_page + 1)"
+          class="btn btn-sm btn-ghost disabled:opacity-50"
+        >
+          Próxima
+        </button>
+      </div>
+    </div>
       </div>
     </div>
   </div>
@@ -104,22 +123,34 @@ const csrfToken = ref('');
 const search = ref('');
 const sort = ref('name');
 const dir = ref('asc');
+const pagination = ref({ current_page: 1, last_page: 1, total: 0 });
 
 /* ===============================
    API
    =============================== */
-async function load() {
+async function load(page = 1) {
   const res = await window.axios.get('/api/publishers', {
-    params: { search: search.value, sort: sort.value, dir: dir.value },
+    params: { search: search.value, sort: sort.value, dir: dir.value, page },
   });
-  const pageData = unwrapPage(res);
-  publishers.value = pageData.data ?? [];
+  const p = unwrapPage(res);
+  publishers.value = p.data ?? [];
+  pagination.value = {
+    current_page: p.current_page ?? 1,
+    last_page: p.last_page ?? 1,
+    total: p.total ?? 0,
+  };
+}
+
+function loadPage(page) {
+  load(page);
 }
 
 /* ===============================
    REAGIR A FILTROS
    =============================== */
-watch([search, sort, dir], () => load());
+watch([search, sort, dir], () => {
+  load(1);
+});
 
 function confirmDelete(e) {
   if (!confirm('Tem certeza que deseja eliminar esta editora?')) {
@@ -129,6 +160,6 @@ function confirmDelete(e) {
 
 onMounted(() => {
   csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  load();
+  load(1);
 });
 </script>

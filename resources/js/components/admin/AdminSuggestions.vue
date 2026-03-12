@@ -1,6 +1,6 @@
 <template>
   <div class="card bg-base-100 shadow">
-    <div class="card-body p-6">
+    <div class="card-body p-8">
       <h3 class="card-title text-lg">📥 Sugestões pendentes</h3>
       <p class="text-sm text-base-content/70">
         Aprove ou rejeite as sugestões de aquisição dos cidadãos.

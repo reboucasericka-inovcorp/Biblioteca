@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-4">
-    <!-- Barra de filtros + Criar -->
+    <!-- Barra de filtros -->
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
         <div class="flex flex-wrap items-center gap-4">
       <input
         v-model="search"
@@ -19,13 +19,6 @@
         <option value="asc">ASC</option>
         <option value="desc">DESC</option>
       </select>
-      <a
-        v-if="userIsAdmin"
-        href="/books/create"
-        class="btn btn-primary"
-      >
-        Criar Livro
-      </a>
       <button
         type="button"
         @click="exportExcel"
@@ -44,9 +37,9 @@
 
     <!-- Tabela de dados -->
     <div class="card bg-base-100 shadow">
-      <div class="card-body p-6">
+      <div class="card-body p-8">
     <div class="overflow-x-auto">
-      <table class="table table-zebra w-full">
+      <table class="table table-zebra table-lg w-full">
         <thead>
           <tr>
             <th>Cover</th>
@@ -77,7 +70,7 @@
             </td>
             <td class="p-4 text-sm">{{ b.publisher?.name || '-' }}</td>
             <td class="p-4">
-              <div class="flex flex-wrap gap-4">
+              <div class="flex flex-wrap gap-8">
                 <span
                   v-for="a in b.authors"
                   :key="a.id"
@@ -99,16 +92,16 @@
                 class="btn btn-xs btn-success inline-flex items-center gap-1"
                 title="Requisitar este livro"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                 </svg>
-                Requisitar
+                
               </button>
               <span v-else class="badge badge-error inline-flex items-center gap-1" title="Livro indisponível">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Indisponível
+                
               </span>
             </td>
             <td v-if="userIsAdmin" class="p-4">
