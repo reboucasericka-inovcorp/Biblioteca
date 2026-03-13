@@ -8,20 +8,7 @@
     <!-- Seções horizontais estilo Netflix / Amazon -->
     <div class="space-y-10">
       <!-- 📚 Continue Reading -->
-      <section class="space-y-4">
-        <h2 class="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-          📚 Continue Reading
-        </h2>
-        <div v-if="continueReading.length === 0" class="rounded-xl bg-base-200/50 border border-base-300 py-12 text-center">
-          <p class="text-base-content/60 text-sm">Ainda não tem livros a continuar.</p>
-          <a href="/books" class="mt-2 inline-block text-primary font-medium hover:underline">Explorar livros</a>
-        </div>
-        <books-grid
-          v-else
-          :books="continueReading"
-          :is-logged="true"
-        />
-      </section>
+      
 
       <!-- ⭐ My Favorites -->
       <section class="space-y-4">

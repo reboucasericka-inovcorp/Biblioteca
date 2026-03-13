@@ -148,7 +148,7 @@
     {{-- OS MAIS VENDIDOS (tecnologia, 6 livros) --}}
     <section class="py-20 bg-white">
         <div class="max-w-[1700px] mx-auto px-6">
-            <h2 class="text-[#000020] text-2xl font-semibold mb-6 uppercase tracking-wide">Tecnologia & Desenvolvimento</h2>
+            <h2 class="text-[#000020] text-2xl font-semibold mb-6 uppercase tracking-wide"></h2>
             <public-books-section mode="tech"></public-books-section>
         </div>
     </section>

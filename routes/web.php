@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookDownloadController;
+use App\Http\Controllers\CheckoutSuccessController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
@@ -11,6 +12,9 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestEmail;
+
 
 // Raiz: sempre página pública. O painel (admin/cidadão) só acessível após login em /dashboard
 Route::get('/', function () {
@@ -27,7 +31,7 @@ Route::get('/books/{book}/edit', [BookController::class, 'edit'])
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 Route::view('/cart', 'cart.index')->name('cart.index');
 Route::view('/checkout', 'checkout.index')->name('checkout.index')->middleware('auth');
-Route::view('/checkout/success', 'checkout.success')->name('checkout.success');
+Route::get('/checkout/success', [CheckoutSuccessController::class, 'success'])->name('checkout.success');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/citizen', function () {
@@ -76,4 +80,16 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/requisitions', [RequisitionController::class, 'index'])
         ->name('requisitions.index');
+
+       /* Route::get('/test-email', function () {
+
+            Mail::raw('Email de teste do sistema Biblioteca', function ($message) {
+                $message->to('reboucasericka@gmail.com')
+                        ->subject('Teste de Email Laravel');
+            });
+        
+            return "Email enviado!";
+        });
+
+    */
 });

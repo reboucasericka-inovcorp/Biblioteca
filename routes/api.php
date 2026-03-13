@@ -30,7 +30,7 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/requisitions/stats', [RequisitionApiController::class, 'stats']);
     Route::get('/requisitions', [RequisitionApiController::class, 'index']);
-    Route::post('/requisitions', [RequisitionController::class, 'store']);
+    Route::post('/requisitions', [RequisitionApiController::class, 'store']);
     Route::post('/requisitions/{requisition}/return', [RequisitionController::class, 'confirmReturn'])
         ->middleware('role:Admin');
     Route::post('/google-books/import', [GoogleBooksApiController::class, 'import'])

@@ -2,13 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\BookUnavailableException;
+use App\Exceptions\UserRequisitionLimitExceededException;
 use App\Http\Controllers\Controller;
+use App\Mail\RequisitionCreated;
 use App\Models\Requisition;
+use App\Models\User;
+use App\Services\RequisitionService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class RequisitionApiController extends Controller
 {
+    public function __construct(
+        private readonly RequisitionService $requisitionService
+    ) {}
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -25,9 +36,17 @@ class RequisitionApiController extends Controller
             $query->where('status', $status);
         }
 
-        // Ordenação
+        // FIX: evitar orderBy com campos arbitrários vindos do request (segurança)
+        $allowedSorts = ['created_at', 'request_date', 'return_date', 'status'];
+
         $sort = $request->get('sort', 'created_at');
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+
         $dir = $request->get('dir', 'desc');
+        $dir = $dir === 'asc' ? 'asc' : 'desc';
+
         $query->orderBy($sort, $dir);
 
         return ApiResponse::success($query->paginate(15));
@@ -51,5 +70,34 @@ class RequisitionApiController extends Controller
             'last_30_days' => $last30Days,
             'delivered_today' => $deliveredToday,
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'book_id' => 'required|integer|exists:books,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first(),
+                'data' => null,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        try {
+            $requisition = $this->requisitionService->createRequisition($user, (int) $request->book_id);
+        } catch (BookUnavailableException|UserRequisitionLimitExceededException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
+
+        $requisition->load(['book', 'user']);
+        Mail::to($user->email)->send(new RequisitionCreated($requisition));
+        Mail::to(User::role('Admin')->get())->send(new RequisitionCreated($requisition));
+
+        return ApiResponse::success(null, 'Requisition created successfully.', 201);
     }
 }
