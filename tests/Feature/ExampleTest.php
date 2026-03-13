@@ -19,12 +19,13 @@ class ExampleTest extends TestCase
         $response->assertViewIs('welcome');
     }
 
-    public function test_home_redirects_to_dashboard_for_authenticated_users(): void
+    public function test_home_shows_welcome_page_for_authenticated_users(): void
     {
         $user = \App\Models\User::factory()->create();
 
         $response = $this->actingAs($user)->get('/');
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertOk();
+        $response->assertViewIs('welcome');
     }
 }   
