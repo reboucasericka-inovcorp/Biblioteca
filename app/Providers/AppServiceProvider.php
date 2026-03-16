@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Author;
+use App\Models\Book;
+use App\Models\Publisher;
+use App\Models\Requisition;
+use App\Observers\AuthorObserver;
+use App\Observers\BookObserver;
+use App\Observers\PublisherObserver;
+use App\Observers\RequisitionObserver;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\ServiceProvider;
@@ -61,6 +69,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Registar Observers para logging automático
+        Book::observe(BookObserver::class);
+        Author::observe(AuthorObserver::class);
+        Requisition::observe(RequisitionObserver::class);
+        Publisher::observe(PublisherObserver::class);
     }
 }

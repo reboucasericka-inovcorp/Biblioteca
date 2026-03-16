@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookDownloadController;
 use App\Http\Controllers\CheckoutSuccessController;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
@@ -66,6 +67,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+        Route::get('/logs/{log}', [LogController::class, 'show'])->name('logs.show');
     });
 
     Route::get('/books/{book}/download', [BookDownloadController::class, 'download'])

@@ -30,6 +30,10 @@ class RequisitionService
                 throw new BookUnavailableException('Book not found.');
             }
 
+            if ((int) $book->stock <= 0) {
+                throw new BookUnavailableException('Book has no stock available.');
+            }
+
             // Regra 1: Livro já está requisitado? (active ou late)
             $alreadyRequested = Requisition::where('book_id', $book->id)
                 ->whereIn('status', [

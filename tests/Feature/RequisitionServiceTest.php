@@ -130,6 +130,7 @@ class RequisitionServiceTest extends TestCase
             'isbn' => '978-0-00-000000-'.uniqid(),
             'price' => 12.50,
             'publisher_id' => $publisher->id,
+            'stock' => 5,
         ], $overrides));
     }
 }

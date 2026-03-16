@@ -8,6 +8,7 @@ use App\Mail\RequisitionCreated;
 use App\Models\Requisition;
 use App\Models\User;
 use App\Services\BookAvailabilityAlertService;
+use App\Services\LogService;
 use App\Services\RequisitionService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
@@ -64,6 +65,14 @@ class RequisitionController extends Controller
             'days_elapsed' => $returnDate->diffInDays($requisition->request_date),
             'status' => Requisition::STATUS_RETURNED,
         ]);
+
+        // Registar a devolução no log (ação especial, não capturada por observer de update)
+        LogService::record(
+            module: 'Requisition',
+            action: 'returned',
+            objectId: $requisition->id,
+            description: "Requisição devolvida (#{$requisition->sequential_number})"
+        );
 
         $book = $requisition->book()->first();
         if ($book && $book->isAvailable()) {

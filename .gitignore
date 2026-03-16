@@ -6,6 +6,8 @@ Thumbs.db
 .env
 .env.backup
 .env.production
+.env.*
+!.env.example
 auth.json
 
 # IDE
@@ -23,6 +25,7 @@ auth.json
 # Dependencies
 /vendor
 /node_modules
+public/vendor/
 
 # Build
 /public/build
