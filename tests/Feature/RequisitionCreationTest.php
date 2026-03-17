@@ -8,7 +8,6 @@ use App\Models\Requisition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RequisitionCreationTest extends TestCase
@@ -18,8 +17,7 @@ class RequisitionCreationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
+        $this->seed();
     }
 
     protected function createBook(array $overrides = []): Book

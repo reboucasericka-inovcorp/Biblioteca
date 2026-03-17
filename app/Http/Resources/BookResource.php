@@ -10,7 +10,10 @@ class BookResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
+        $isAdmin = $request->user()?->hasRole('Admin') ?? false;
+        $availableStock = (int) $this->resource->available_stock;
+
+        $base = [
             'id' => $this->id,
             'title' => $this->name,
             'name' => $this->name,
@@ -19,10 +22,8 @@ class BookResource extends JsonResource
             'google_volume_id' => $this->google_volume_id,
             'bibliography' => $this->bibliography,
             'published_date' => $this->published_date,
-            'price' => $this->price,
+            'price' => $this->price !== null ? (float) $this->price : null,
             'discount' => $this->discount ?? 0,
-            'stock' => (int) ($this->stock ?? 0),
-            'available_stock' => (int) $this->resource->available_stock,
             'pages' => $this->pages,
             'language' => $this->language,
             'dimensions' => $this->dimensions,
@@ -76,6 +77,15 @@ class BookResource extends JsonResource
                 ];
             })->values(),
         ];
+
+        // Stock e quantidade só para administradores; clientes veem apenas disponibilidade (sim/não)
+        $base['available'] = $availableStock > 0;
+        if ($isAdmin) {
+            $base['stock'] = (int) ($this->stock ?? 0);
+            $base['available_stock'] = $availableStock;
+        }
+
+        return $base;
     }
 
     private function canDownload(Request $request): bool

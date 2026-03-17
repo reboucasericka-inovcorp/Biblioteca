@@ -25,7 +25,8 @@ export const CartService = {
    */
   add(book) {
     const stock = (book.available_stock ?? book.stock) != null ? Number(book.available_stock ?? book.stock) : null;
-    if (stock !== null && stock <= 0) {
+    const available = book.available === true || book.available === false ? book.available : (stock == null || stock > 0);
+    if (!available || (stock !== null && stock <= 0)) {
       return { success: false, message: 'Esgotado' };
     }
 

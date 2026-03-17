@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureRequestContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,6 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+
+        // Capturar contexto do request (IP, User-Agent, módulo) para auditoria
+        $middleware->web(append: [
+            CaptureRequestContext::class,
+        ]);
+        $middleware->api(append: [
+            CaptureRequestContext::class,
+        ]);
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,

@@ -47,20 +47,18 @@
             <span v-else class="text-base-content/60">Preço sob consulta</span>
           </div>
 
-          <!-- Disponibilidade (stock) -->
+          <!-- Disponibilidade (sem mostrar quantidade de stock na página pública) -->
           <div class="mb-3">
-            <p v-if="availableStock > 0" class="text-sm text-success">
-              Disponível · Stock: {{ availableStock }} unidades
-            </p>
+            <p v-if="isAvailable" class="text-sm text-success">Disponível</p>
             <p v-else class="text-sm text-error font-medium">Esgotado</p>
           </div>
 
           <!-- Ações -->
           <div class="flex flex-wrap gap-3 mb-8">
             <button
+              v-if="isAvailable"
               type="button"
               class="btn btn-primary"
-              :disabled="availableStock <= 0"
               @click="addToCart"
             >
               Adicionar ao carrinho
@@ -234,12 +232,16 @@ export default {
 
     hasPrice() {
       const p = this.book.price;
-      return typeof p === 'number' && p >= 0;
+      if (p == null || p === '') return false;
+      const n = typeof p === 'number' ? p : Number(p);
+      return !Number.isNaN(n) && n >= 0;
     },
 
     originalPrice() {
       const p = this.book.price;
-      return typeof p === 'number' ? Number(p) : 0;
+      if (p == null) return 0;
+      const n = typeof p === 'number' ? p : Number(p);
+      return Number.isNaN(n) ? 0 : n;
     },
 
     discountPrice() {
@@ -252,10 +254,14 @@ export default {
       return this.book?.title ?? this.book?.name ?? '—';
     },
 
-    availableStock() {
+    /** Disponível para compra (API pode enviar `available` para clientes ou stock para admin). */
+    isAvailable() {
+      if (this.book?.available === true || this.book?.available === false) {
+        return this.book.available === true;
+      }
       const s = this.book?.available_stock ?? this.book?.stock;
-      if (s === undefined || s === null) return 1;
-      return Math.max(0, Number(s));
+      if (s === undefined || s === null) return true;
+      return Math.max(0, Number(s)) > 0;
     },
   },
 

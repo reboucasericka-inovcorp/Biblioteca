@@ -61,10 +61,10 @@
         </template>
       </div>
 
-      <!-- disponibilidade e stock -->
+      <!-- disponibilidade (sem mostrar quantidade de stock na página pública) -->
       <div class="mt-2 flex flex-col items-center gap-1">
-        <template v-if="availableStock(b) > 0">
-          <p class="text-xs text-success">Disponível · Stock: {{ availableStock(b) }} unidades</p>
+        <template v-if="isAvailable(b)">
+          <p class="text-xs text-success">Disponível</p>
           <button
             type="button"
             class="w-full py-2 px-4 rounded-lg bg-primary text-primary-content font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-primary-focus"
@@ -75,13 +75,6 @@
         </template>
         <template v-else>
           <span class="badge badge-error badge-sm">Esgotado</span>
-          <button
-            type="button"
-            class="w-full py-2 px-4 rounded-lg btn btn-disabled btn-sm"
-            disabled
-          >
-            Adicionar ao carrinho
-          </button>
         </template>
       </div>
     </div>
@@ -145,15 +138,17 @@ function displayDiscount(book) {
 
 function hasPrice(book) {
   const p = book.price ?? book.price_cents;
-  return typeof p === 'number' && p >= 0;
+  if (p == null || p === '') return false;
+  const n = typeof p === 'number' ? p : Number(p);
+  return !Number.isNaN(n) && n >= 0;
 }
 
 function originalPrice(book) {
   const p = book.price ?? book.price_cents;
-  if (typeof p === 'number') {
-    return book.price_cents != null ? p / 100 : p;
-  }
-  return 0;
+  if (p == null) return 0;
+  const n = typeof p === 'number' ? p : Number(p);
+  if (Number.isNaN(n)) return 0;
+  return book.price_cents != null && typeof book.price_cents === 'number' ? n / 100 : n;
 }
 
 // Preço com desconto: se API não enviar discount, usa 20% (price * 0.8)
@@ -190,10 +185,12 @@ async function toggleFavorite(bookId, book = null) {
   }
 }
 
-function availableStock(book) {
+/** Disponível para compra (API pode enviar `available` para clientes ou `available_stock` para admin). */
+function isAvailable(book) {
+  if (book.available === true || book.available === false) return book.available === true;
   const s = book.available_stock ?? book.stock;
-  if (s === undefined || s === null) return 1;
-  return Math.max(0, Number(s));
+  if (s === undefined || s === null) return true;
+  return Math.max(0, Number(s)) > 0;
 }
 
 function addToCart(book) {

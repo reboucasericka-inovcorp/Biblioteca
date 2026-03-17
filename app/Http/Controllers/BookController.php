@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\Publisher;
 use App\Exports\BooksExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -35,7 +36,9 @@ class BookController extends Controller
         $publishers = Publisher::orderBy('name')->get();
         $authors = Author::orderBy('name')->get();
         $book->load('authors');
-        return view('books.edit', compact('book', 'publishers', 'authors'));
+        $uploadMax = ini_get('upload_max_filesize');
+        $postMax = ini_get('post_max_size');
+        return view('books.edit', compact('book', 'publishers', 'authors', 'uploadMax', 'postMax'));
     }
 
     public function export(Request $request)
@@ -62,10 +65,10 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
-            'file' => 'nullable|mimes:pdf|max:20480',
+            'file' => 'nullable|file|mimes:pdf|max:20480',
             'authors' => 'nullable|array',
             'authors.*' => 'exists:authors,id',
-        ]);
+        ], $this->fileValidationMessages());
 
         $coverPath = null;
         if ($request->hasFile('cover')) {
@@ -73,7 +76,8 @@ class BookController extends Controller
         }
 
         $filePath = null;
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('file') && $request->file('file')->isValid()) {
+            File::ensureDirectoryExists(Storage::disk('books')->path(''));
             $filePath = $request->file('file')->store('', 'books');
         }
 
@@ -109,10 +113,10 @@ class BookController extends Controller
             'publisher_id' => 'required|exists:publishers,id',
             'bibliography' => 'nullable|string',
             'cover' => 'nullable|image|max:2048',
-            'file' => 'nullable|mimes:pdf|max:20480',
+            'file' => 'nullable|file|mimes:pdf|max:20480',
             'authors' => 'nullable|array',
             'authors.*' => 'exists:authors,id',
-        ]);
+        ], $this->fileValidationMessages());
 
         $data = $request->only(['name', 'isbn', 'price', 'discount', 'stock', 'publisher_id', 'bibliography']);
         $data['is_active'] = $request->boolean('is_active');
@@ -124,10 +128,11 @@ class BookController extends Controller
             $data['cover'] = $request->file('cover')->store('covers', 'public');
         }
 
-        if ($request->hasFile('file')) {
+        if ($request->hasFile('file') && $request->file('file')->isValid()) {
             if ($book->file_path) {
                 Storage::disk('books')->delete($book->file_path);
             }
+            File::ensureDirectoryExists(Storage::disk('books')->path(''));
             $data['file_path'] = $request->file('file')->store('', 'books');
         }
 
@@ -137,6 +142,18 @@ class BookController extends Controller
         return redirect()->route('books.index')
             ->with('flash.banner', 'Book updated successfully.')
             ->with('flash.bannerStyle', 'success');
+    }
+
+    /**
+     * Mensagens de validação para o ficheiro PDF (evitar "The file failed to upload" genérico).
+     */
+    private function fileValidationMessages(): array
+    {
+        return [
+            'file.mimes' => 'O ficheiro do livro deve ser PDF.',
+            'file.max' => 'O PDF não pode exceder 20 MB. Se o seu ficheiro for menor, aumente upload_max_filesize e post_max_size no PHP.',
+            'file.uploaded' => 'O PDF não pôde ser enviado. Verifique o tamanho (máx. 20 MB) e as definições do servidor (upload_max_filesize, post_max_size).',
+        ];
     }
 
     public function destroy(Book $book)

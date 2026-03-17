@@ -9,12 +9,4 @@
             <a href="{{ url('/') }}" class="btn btn-primary">Voltar ao início</a>
         </div>
     </div>
-    <script>
-        (function () {
-            try {
-                localStorage.removeItem('library_cart');
-                window.dispatchEvent(new Event('cart-updated'));
-            } catch (e) {}
-        })();
-    </script>
 </x-public-layout>

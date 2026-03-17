@@ -55,56 +55,6 @@
             </div>
         </div>
     </section>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var carousel = document.getElementById("banner-carousel");
-        if (!carousel) return;
-        var slides = carousel.querySelectorAll(".carousel-item");
-        var dots = document.querySelectorAll(".banner-dot");
-        var btnPrev = document.getElementById("banner-prev");
-        var btnNext = document.getElementById("banner-next");
-        var index = 0;
-        var autoplayMs = 5000;
-        var autoplayTimer = null;
-
-        function goToSlide(i) {
-            index = (i + slides.length) % slides.length;
-            var slide = slides[index];
-            // Só scroll horizontal dentro do carousel — não move a página
-            carousel.scrollTo({ left: slide.offsetLeft, behavior: "smooth" });
-            dots.forEach(function (btn) { btn.classList.remove("opacity-100"); btn.classList.add("opacity-70"); });
-            if (dots[index]) {
-                dots[index].classList.remove("opacity-70");
-                dots[index].classList.add("opacity-100");
-            }
-        }
-
-        function startAutoplay() {
-            if (autoplayTimer) clearInterval(autoplayTimer);
-            autoplayTimer = setInterval(function () {
-                index = (index + 1) % slides.length;
-                goToSlide(index);
-            }, autoplayMs);
-        }
-
-        dots.forEach(function (btn, i) {
-            btn.addEventListener("click", function () {
-                goToSlide(i);
-                startAutoplay();
-            });
-        });
-        if (btnPrev) btnPrev.addEventListener("click", function () { goToSlide(index - 1); startAutoplay(); });
-        if (btnNext) btnNext.addEventListener("click", function () { goToSlide(index + 1); startAutoplay(); });
-
-        goToSlide(0);
-        startAutoplay();
-    });
-    </script>
-
-
-  
-    
     <!--
         PRINCIPAIS CATEGORIAS: Atualizadas para refletir o foco em programação/tecnologia.
         Mantive a estrutura, classes e quantidade de itens originais.

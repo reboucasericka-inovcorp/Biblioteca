@@ -10,7 +10,6 @@ use App\Models\Requisition;
 use App\Models\User;
 use App\Services\RequisitionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class RequisitionServiceTest extends TestCase
@@ -22,10 +21,7 @@ class RequisitionServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
-
+        $this->seed();
         $this->service = app(RequisitionService::class);
     }
 

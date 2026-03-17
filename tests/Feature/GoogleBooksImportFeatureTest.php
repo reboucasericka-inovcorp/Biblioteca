@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class GoogleBooksImportFeatureTest extends TestCase
@@ -16,9 +15,7 @@ class GoogleBooksImportFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
+        $this->seed();
     }
 
     public function test_admin_pode_importar_livro_do_google_books(): void

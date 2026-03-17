@@ -26,6 +26,9 @@ use Tests\TestCase;
 */
 
 uses(TestCase::class, RefreshDatabase::class)
+    ->beforeEach(function (): void {
+        $this->seed();
+    })
     ->in('Feature');
 
 /*

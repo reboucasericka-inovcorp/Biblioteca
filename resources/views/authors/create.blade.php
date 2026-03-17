@@ -38,19 +38,4 @@
                 </form>
             </div>
         </div>
-    <script>
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.classList.add('hidden');
-            }
-        }
-    </script>
 </x-admin-layout>

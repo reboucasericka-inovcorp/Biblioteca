@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class BookAvailabilityAlertTest extends TestCase
@@ -21,9 +20,7 @@ class BookAvailabilityAlertTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
+        $this->seed();
     }
 
     public function test_cidadao_pode_subscrever_alerta(): void

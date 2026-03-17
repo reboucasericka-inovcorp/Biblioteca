@@ -12,7 +12,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ReviewWorkflowTest extends TestCase
@@ -22,9 +21,7 @@ class ReviewWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
+        $this->seed();
     }
 
     public function test_cidadao_nao_pode_avaliar_antes_de_devolver(): void

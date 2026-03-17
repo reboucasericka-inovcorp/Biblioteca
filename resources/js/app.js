@@ -7,6 +7,105 @@ import BooksTable from './components/admin/BooksTable.vue';
 
 window.showToast = showToast;
 
+/** Preview de imagem em inputs file (usado em formulários Blade; deve estar no window para não ter <script> dentro de #app). */
+window.previewImage = function (input, previewId) {
+  const preview = document.getElementById(previewId);
+  if (!preview) return;
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+    };
+    reader.readAsDataURL(input.files[0]);
+  } else {
+    preview.classList.add('hidden');
+  }
+};
+
+/**
+ * Scripts de páginas públicas que antes estavam inline nas Blade templates.
+ * Mantidos aqui para evitar <script> dentro de #app (que é compilado pelo Vue).
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  /**
+   * Banner da página inicial (welcome.blade).
+   * Só corre se existir o carrossel de banners.
+   */
+  const carousel = document.getElementById('banner-carousel');
+  if (carousel) {
+    const slides = carousel.querySelectorAll('.carousel-item');
+    const dots = document.querySelectorAll('.banner-dot');
+    const btnPrev = document.getElementById('banner-prev');
+    const btnNext = document.getElementById('banner-next');
+    let index = 0;
+    const autoplayMs = 5000;
+    let autoplayTimer = null;
+
+    const goToSlide = (i) => {
+      if (!slides.length) return;
+      index = (i + slides.length) % slides.length;
+      const slide = slides[index];
+      if (!slide) return;
+      // Só scroll horizontal dentro do carousel — não move a página
+      carousel.scrollTo({ left: slide.offsetLeft, behavior: 'smooth' });
+      dots.forEach((btn) => {
+        btn.classList.remove('opacity-100');
+        btn.classList.add('opacity-70');
+      });
+      if (dots[index]) {
+        dots[index].classList.remove('opacity-70');
+        dots[index].classList.add('opacity-100');
+      }
+    };
+
+    const startAutoplay = () => {
+      if (autoplayTimer) clearInterval(autoplayTimer);
+      autoplayTimer = setInterval(() => {
+        index = (index + 1) % slides.length;
+        goToSlide(index);
+      }, autoplayMs);
+    };
+
+    dots.forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        goToSlide(i);
+        startAutoplay();
+      });
+    });
+
+    if (btnPrev) {
+      btnPrev.addEventListener('click', () => {
+        goToSlide(index - 1);
+        startAutoplay();
+      });
+    }
+
+    if (btnNext) {
+      btnNext.addEventListener('click', () => {
+        goToSlide(index + 1);
+        startAutoplay();
+      });
+    }
+
+    goToSlide(0);
+    startAutoplay();
+  }
+
+  /**
+   * Página de sucesso do checkout.
+   * Usa a rota /checkout/success — limpar o carrinho apenas aí.
+   */
+  if (window.location && window.location.pathname.startsWith('/checkout/success')) {
+    try {
+      localStorage.removeItem('library_cart');
+      window.dispatchEvent(new Event('cart-updated'));
+    } catch (e) {
+      // falha silenciosa; não deve quebrar a página
+    }
+  }
+});
+
 const pinia = createPinia();
 import AuthorsTable from './components/admin/AuthorsTable.vue';
 import PublishersTable from './components/admin/PublishersTable.vue';
@@ -29,9 +128,10 @@ import SalesDashboard from './components/admin/SalesDashboard.vue';
 import UsersTable from './components/admin/UsersTable.vue';
 import ReviewsTable from './components/admin/ReviewsTable.vue';
 
-// #app contém só {{ $slot }}. Usar esse HTML como template para Vue compilar os custom elements (books-table, etc.).
+// Criar a app Vue e montar em #app; o HTML dentro de #app é usado como template,
+// mas evitamos manipular innerHTML manualmente.
 const appEl = document.getElementById('app');
-const app = createApp({ template: appEl ? appEl.innerHTML : '<div></div>' });
+const app = createApp({});
 app.use(pinia);
 app.component('books-table', BooksTable);
 app.component('authors-table', AuthorsTable);
@@ -55,7 +155,7 @@ app.component('sales-dashboard', SalesDashboard);
 app.component('users-table', UsersTable);
 app.component('reviews-table', ReviewsTable);
 
-if (document.getElementById('app')) {
+if (appEl) {
   app.mount('#app');
 }
 

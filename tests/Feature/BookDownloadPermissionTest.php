@@ -8,7 +8,6 @@ use App\Models\Requisition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class BookDownloadPermissionTest extends TestCase
@@ -18,8 +17,7 @@ class BookDownloadPermissionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Role::firstOrCreate(['name' => 'Admin']);
-        Role::firstOrCreate(['name' => 'Cidadao']);
+        $this->seed();
     }
 
     public function test_download_sem_requisicao_retorna_403(): void

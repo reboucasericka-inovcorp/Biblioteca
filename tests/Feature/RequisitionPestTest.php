@@ -5,7 +5,6 @@ use App\Models\Publisher;
 use App\Models\Requisition;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
-use Spatie\Permission\Models\Role;
 
 /**
  * TESTE 1: Criar requisição com sucesso
@@ -14,9 +13,6 @@ use Spatie\Permission\Models\Role;
  */
 test('user can create a requisition successfully', function () {
     Mail::fake();
-
-    Role::firstOrCreate(['name' => 'Admin']);
-    Role::firstOrCreate(['name' => 'Cidadao']);
 
     $user = User::factory()->create();
     $user->assignRole('Cidadao');
@@ -52,8 +48,6 @@ test('user can create a requisition successfully', function () {
  * Verificar que não é possível requisitar um livro inexistente
  */
 test('cannot create requisition with invalid book', function () {
-    Role::firstOrCreate(['name' => 'Cidadao']);
-
     $user = User::factory()->create();
     $user->assignRole('Cidadao');
 
@@ -71,8 +65,6 @@ test('cannot create requisition with invalid book', function () {
  */
 test('cannot create requisition when book already requested', function () {
     Mail::fake();
-
-    Role::firstOrCreate(['name' => 'Cidadao']);
 
     $user1 = User::factory()->create();
     $user1->assignRole('Cidadao');
@@ -99,19 +91,17 @@ test('cannot create requisition when book already requested', function () {
 test('user cannot have more than 3 active requisitions', function () {
     Mail::fake();
 
-    Role::firstOrCreate(['name' => 'Cidadao']);
-
     $user = User::factory()->create();
     $user->assignRole('Cidadao');
 
-    // Criar 3 livros e 3 requisições
-    $books = Book::factory(3)->create();
+    // Criar 3 livros com stock e 3 requisições
+    $books = Book::factory(3)->create(['stock' => 2]);
     foreach ($books as $book) {
         $this->actingAs($user)->postJson('/api/requisitions', ['book_id' => $book->id]);
     }
 
-    // Tentar criar um 4º livro e requisitá-lo
-    $fourthBook = Book::factory()->create();
+    // Tentar criar um 4º livro (com stock) e requisitá-lo — deve falhar por limite
+    $fourthBook = Book::factory()->create(['stock' => 5]);
     $response = $this->actingAs($user)->postJson('/api/requisitions', ['book_id' => $fourthBook->id]);
 
     expect($response->status())->toBe(422);
@@ -124,9 +114,6 @@ test('user cannot have more than 3 active requisitions', function () {
  * Verificar que uma requisição ativa pode ser devolvida
  */
 test('user can confirm return of a requisition', function () {
-    Role::firstOrCreate(['name' => 'Admin']);
-    Role::firstOrCreate(['name' => 'Cidadao']);
-
     $user = User::factory()->create();
     $user->assignRole('Cidadao');
     $admin = User::factory()->create();
@@ -162,11 +149,9 @@ test('user can confirm return of a requisition', function () {
 /**
  * TESTE 6: Listagem de requisições filtra por utilizador
  *
- * Verificar que cada utilizador vê apenas as suas requisições
+ * Verificar que cada utilizador vê apenas as suas requisições (rota web)
  */
 test('user can only see their own requisitions', function () {
-    Role::firstOrCreate(['name' => 'Cidadao']);
-
     $user1 = User::factory()->create();
     $user1->assignRole('Cidadao');
     $user2 = User::factory()->create();
@@ -180,7 +165,32 @@ test('user can only see their own requisitions', function () {
     $response = $this->actingAs($user1)->get('/requisitions');
 
     expect($response->status())->toBe(200);
-    // A verificação real seria feita na view, mas aqui confirmamos a rota existe
+});
+
+/**
+ * TESTE 6b: Listagem via API — extração robusta independente do formato de ApiResponse
+ */
+test('user sees only own requisitions via api with robust payload extraction', function () {
+    $user1 = User::factory()->create();
+    $user1->assignRole('Cidadao');
+    $user2 = User::factory()->create();
+    $user2->assignRole('Cidadao');
+
+    $book1 = Book::factory()->create();
+    $book2 = Book::factory()->create();
+    Requisition::factory()->create(['user_id' => $user1->id, 'book_id' => $book1->id]);
+    Requisition::factory()->create(['user_id' => $user2->id, 'book_id' => $book2->id]);
+
+    $response = $this->actingAs($user1)->getJson('/api/requisitions');
+    $response->assertStatus(200);
+
+    $json = $response->json();
+    // Resistente a mudanças no ApiResponse (paginator vs array direto)
+    $items = data_get($json, 'data.data') ?? data_get($json, 'data') ?? [];
+
+    expect($items)->toBeArray();
+    expect(count($items))->toBe(1);
+    expect((int) ($items[0]['user_id'] ?? $items[0]['user']['id'] ?? 0))->toBe($user1->id);
 });
 
 /**
@@ -190,8 +200,6 @@ test('user can only see their own requisitions', function () {
  */
 test('cannot create requisition for book with zero stock', function () {
     Mail::fake();
-
-    Role::firstOrCreate(['name' => 'Cidadao']);
 
     $user = User::factory()->create();
     $user->assignRole('Cidadao');

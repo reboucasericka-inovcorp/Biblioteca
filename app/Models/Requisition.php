@@ -63,10 +63,9 @@ class Requisition extends Model
     protected static function booted()
     {
         static::creating(function ($requisition) {
-
             $year = now()->year;
 
-            $last = self::whereYear('request_date', $year)
+            $last = self::whereYear('created_at', $year)
                 ->orderByDesc('id')
                 ->lockForUpdate()
                 ->first();
@@ -84,9 +83,11 @@ class Requisition extends Model
                 $number
             );
 
-            $requisition->request_date = now();
-            $requisition->due_date = now()->addDays(5);
-            $requisition->status = self::STATUS_ACTIVE;
+            $requisition->request_date ??= now();
+            $requisition->due_date ??= now()->addDays(5);
+            if (! $requisition->status) {
+                $requisition->status = self::STATUS_ACTIVE;
+            }
         });
     }
 }
