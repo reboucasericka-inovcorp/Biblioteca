@@ -24,7 +24,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Time') }}</label>
-                        <p class="text-gray-900 font-medium">{{ $log->log_time?->format('H:i:s') ?? '-' }}</p>
+                        <p class="text-gray-900 font-medium">{{ $log->log_time->format('H:i:s') }}</p>
                     </div>
                 </div>
 

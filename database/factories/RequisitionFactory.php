@@ -5,8 +5,8 @@ namespace Database\Factories;
 use App\Models\Book;
 use App\Models\Requisition;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Requisition>
@@ -29,7 +29,7 @@ class RequisitionFactory extends Factory
             'user_id' => User::factory(),
             'book_id' => Book::factory(),
             'request_date' => $requestDate,
-            'due_date' => Carbon::parse($requestDate)->addDays(14),
+            'due_date' => Carbon::instance($requestDate)->addDays(14),
             'return_date' => null,
             'status' => Requisition::STATUS_ACTIVE,
             'days_elapsed' => 0,
@@ -70,7 +70,7 @@ class RequisitionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => Requisition::STATUS_LATE,
             'request_date' => $requestDate,
-            'due_date' => (clone $requestDate)->addDays(14),
+            'due_date' => $requestDate->addDays(14),
             'return_date' => null,
             'days_elapsed' => now()->diffInDays($requestDate),
         ]);

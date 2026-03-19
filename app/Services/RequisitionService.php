@@ -23,6 +23,17 @@ class RequisitionService
     public function createRequisition(User $user, int $bookId): Requisition
     {
         return DB::transaction(function () use ($user, $bookId) {
+            // Regra 1: Utilizador já tem 3 requisições ativas?
+            // Esta validação vem primeiro para manter consistência de regra de negócio
+            // independentemente do estado do livro solicitado.
+            $activeCount = Requisition::where('user_id', $user->id)
+                ->where('status', Requisition::STATUS_ACTIVE)
+                ->count();
+
+            if ($activeCount >= 3) {
+                throw new UserRequisitionLimitExceededException('You already have 3 active requisitions.');
+            }
+
             // Lock do livro para evitar race condition entre requisições concorrentes
             $book = Book::where('id', $bookId)->lockForUpdate()->first();
 
@@ -44,15 +55,6 @@ class RequisitionService
 
             if ($alreadyRequested) {
                 throw new BookUnavailableException('Book is not available.');
-            }
-
-            // Regra 2: Utilizador já tem 3 requisições ativas?
-            $activeCount = Requisition::where('user_id', $user->id)
-                ->where('status', Requisition::STATUS_ACTIVE)
-                ->count();
-
-            if ($activeCount >= 3) {
-                throw new UserRequisitionLimitExceededException('You already have 3 active requisitions.');
             }
 
             return Requisition::create([

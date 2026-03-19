@@ -21,8 +21,8 @@ class LogFactory extends Factory
     public function definition(): array
     {
         return [
-            'log_date' => fake()->dateTimeBetween('-30 days')->format('Y-m-d'),
-            'log_time' => fake()->time('H:i:s'),
+            'log_date' => fake()->dateTimeBetween('-30 days'),
+            'log_time' => fake()->time(),
             'user_id' => User::factory(),
             'module' => fake()->randomElement(['Book', 'Author', 'Publisher', 'Requisition', 'Review']),
             'object_id' => fake()->numberBetween(1, 1000),

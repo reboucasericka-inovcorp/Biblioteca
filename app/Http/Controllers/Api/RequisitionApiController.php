@@ -96,7 +96,10 @@ class RequisitionApiController extends Controller
 
         $requisition->load(['book', 'user']);
         Mail::to($user->email)->send(new RequisitionCreated($requisition));
-        Mail::to(User::role('Admin')->get())->send(new RequisitionCreated($requisition));
+        $admins = User::role('Admin')->get();
+        if ($admins->isNotEmpty()) {
+            Mail::to($admins)->send(new RequisitionCreated($requisition));
+        }
 
         return ApiResponse::success(null, 'Requisition created successfully.', 201);
     }

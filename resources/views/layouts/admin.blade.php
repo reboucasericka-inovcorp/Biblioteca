@@ -69,6 +69,8 @@
 
                 <a href="{{ route('orders.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Pedidos</a>
 
+                <a href="{{ route('logs.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Logs</a>
+
             </nav>
 
             <!-- AÇÕES -->

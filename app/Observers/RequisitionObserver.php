@@ -19,19 +19,10 @@ class RequisitionObserver
     }
 
     /**
-     * Registar quando uma requisição é atualizada.
-     * Não regista update genérico quando o status mudou para returned
-     * (já tratado manualmente em RequisitionController::confirmReturn).
+     * Registar quando uma requisição é atualizada
      */
     public function updated(Requisition $requisition): void
     {
-        $originalStatus = $requisition->getOriginal('status');
-        $newStatus = $requisition->status;
-
-        if ($originalStatus !== Requisition::STATUS_RETURNED && $newStatus === Requisition::STATUS_RETURNED) {
-            return;
-        }
-
         LogService::recordModel(
             model: $requisition,
             action: 'updated',

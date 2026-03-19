@@ -21,24 +21,10 @@ use Tests\TestCase;
 |--------------------------------------------------------------------------
 |
 | Todos os testes feature usam RefreshDatabase por padrão
-| (configurado em phpunit.xml)
+| (configurado em phpunit.xml e pest.php)
 |
 */
 
 uses(TestCase::class, RefreshDatabase::class)
-    ->beforeEach(function (): void {
-        $this->seed();
-    })
+    ->beforeEach(fn () => $this->seed())
     ->in('Feature');
-
-/*
-|--------------------------------------------------------------------------
-| Unit Tests Setup
-|--------------------------------------------------------------------------
-|
-| Testes unitários não precisam de RefreshDatabase
-|
-*/
-
-uses(TestCase::class)
-    ->in('Unit');

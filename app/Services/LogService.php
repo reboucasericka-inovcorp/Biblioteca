@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class LogService
 {
@@ -28,53 +29,34 @@ class LogService
         'token',
     ];
 
-    /** Campos que não devem ser considerados "alterados" no texto do log (ruído) */
-    private const IGNORED_CHANGE_FIELDS = [
-        'created_at',
-        'updated_at',
-    ];
-
-    /** Tamanho máximo da coluna change (MySQL TEXT ≈ 64KB; deixar margem) */
-    private const MAX_CHANGE_LENGTH = 65535;
-
     /**
-     * Registar uma ação de log.
-     *
-     * Deve ser seguro em qualquer contexto (HTTP, CLI, Jobs, testes),
-     * nunca lançando exceções para a operação principal.
+     * Registar uma ação de log TESTE
      */
     public static function record(
-        ?string $module,
+        string $module,
         string $action,
         ?int $objectId = null,
         ?string $description = null,
         ?array $changes = null
     ): ?Log {
-        $change = self::buildChangeDescription($action, $description, $changes);
-
-        // Módulo: explícito > inferido do request > fallback para consistência (CLI/Jobs/analytics)
-        $finalModule = $module ?? self::getModule() ?? 'System';
-
-        // Em alguns contextos (ex.: SQLite :memory: antes do migrate, testes que removem a tabela),
-        // a tabela pode não existir. O serviço de log deve ser sempre "best effort" e silencioso.
-        if (! Schema::hasTable('logs')) {
+        if (!Schema::hasTable('logs')) {
             return null;
         }
+
+        $change = self::buildChangeDescription($action, $description, $changes);
 
         try {
             return Log::create([
                 'log_date' => now()->toDateString(),
                 'log_time' => now()->toTimeString(),
-                'user_id' => self::getCurrentUserId(),
-                'module' => $finalModule,
+                'user_id' => auth()->id(),
+                'module' => $module,
                 'object_id' => $objectId,
                 'change' => $change,
-                'ip' => self::getRequestIp(),
+                'ip' => request()->ip(),
                 'browser' => self::getBrowser(),
             ]);
-        } catch (\Throwable $e) {
-            report($e);
-
+        } catch (Throwable) {
             return null;
         }
     }
@@ -112,18 +94,18 @@ class LogService
         ?string $description,
         ?array $changes
     ): string {
-        $text = strip_tags((string) ($description ?? $action));
+        $text = $description ?? $action;
 
         if ($changes && ! empty($changes)) {
             $changedFields = array_keys($changes);
             $text .= ' (campos alterados: ' . implode(', ', $changedFields) . ')';
         }
 
-        return mb_substr($text, 0, self::MAX_CHANGE_LENGTH);
+        return $text;
     }
 
     /**
-     * Obter descrição legível da ação.
+     * Obter descrição legível da ação
      */
     private static function getActionDescription(string $module, string $action): string
     {
@@ -132,7 +114,6 @@ class LogService
             'updated' => "atualizado",
             'deleted' => "removido",
             'restored' => "restaurado",
-            'returned' => "devolvido",
         ];
 
         $actionText = $actions[$action] ?? $action;
@@ -149,7 +130,7 @@ class LogService
         $changes = [];
 
         foreach ($current as $field => $value) {
-            if (self::isSensitiveField($field) || self::isIgnoredChangeField($field)) {
+            if (self::isSensitiveField($field)) {
                 continue;
             }
 
@@ -162,42 +143,11 @@ class LogService
     }
 
     /**
-     * Verificar se um campo é sensível.
-     *
-     * Critérios:
-     * - match exato em SENSITIVE_FIELDS
-     * - OU contém algum dos fragmentos: password, token, secret, recovery, two_factor
+     * Verificar se um campo é sensível
      */
     private static function isSensitiveField(string $field): bool
     {
-        if (in_array($field, self::SENSITIVE_FIELDS)) {
-            return true;
-        }
-
-        $lower = strtolower($field);
-        $fragments = [
-            'password',
-            'token',
-            'secret',
-            'recovery',
-            'two_factor',
-        ];
-
-        foreach ($fragments as $fragment) {
-            if (str_contains($lower, $fragment)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Campos que não devem aparecer como "alterados" no log (apenas ruído)
-     */
-    private static function isIgnoredChangeField(string $field): bool
-    {
-        return in_array($field, self::IGNORED_CHANGE_FIELDS);
+        return in_array($field, self::SENSITIVE_FIELDS);
     }
 
     /**
@@ -216,47 +166,12 @@ class LogService
     }
 
     /**
-     * Obter IP do request de forma segura (CLI, jobs, testes não têm request HTTP).
-     *
-     * Ordem de precedência:
-     * - atributo "request_ip" capturado pelo middleware CaptureRequestContext
-     * - request()->ip() padrão do Laravel
-     * - null se não existir request (CLI, jobs, testes unitários)
-     */
-    private static function getRequestIp(): ?string
-    {
-        if (! app()->bound('request')) {
-            return null;
-        }
-
-        $request = request();
-
-        if ($request->attributes->has('request_ip')) {
-            return $request->attributes->get('request_ip');
-        }
-
-        return $request->ip();
-    }
-
-    /**
-     * Obter navegador/user-agent legível.
-     *
-     * Ordem de precedência:
-     * - atributo "request_user_agent" capturado pelo middleware CaptureRequestContext
-     * - request()->userAgent()
-     * - "Unknown" se não existir request ou User-Agent
+     * Obter navegador/user-agent legível
      */
     private static function getBrowser(): string
     {
-        if (! app()->bound('request')) {
-            return 'Unknown';
-        }
-
-        $request = request();
-
-        $userAgent = $request->attributes->get('request_user_agent')
-            ?? $request->userAgent();
-
+        $userAgent = request()->userAgent();
+        
         if (! $userAgent) {
             return 'Unknown';
         }
@@ -280,37 +195,5 @@ class LogService
         }
 
         return 'Other';
-    }
-
-    /**
-     * Obter módulo inferido a partir do contexto do request (middleware).
-     *
-     * Em ambientes sem request (CLI, jobs, testes unitários), devolve null.
-     */
-    private static function getModule(): ?string
-    {
-        if (! app()->bound('request')) {
-            return null;
-        }
-
-        $request = request();
-
-        if ($request->attributes->has('request_module')) {
-            return $request->attributes->get('request_module');
-        }
-
-        return null;
-    }
-
-    /**
-     * Obter ID do utilizador autenticado de forma segura (CLI/Jobs não têm request).
-     */
-    private static function getCurrentUserId(): ?int
-    {
-        if (! app()->bound('request')) {
-            return null;
-        }
-
-        return auth()->id();
     }
 }

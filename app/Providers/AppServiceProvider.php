@@ -71,8 +71,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Registar Observers para logging automático
         Book::observe(BookObserver::class);
-        Author::observe(AuthorObserver::class);
         Requisition::observe(RequisitionObserver::class);
+        Author::observe(AuthorObserver::class);
         Publisher::observe(PublisherObserver::class);
     }
 }
