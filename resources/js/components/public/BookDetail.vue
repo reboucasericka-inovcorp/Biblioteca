@@ -64,12 +64,12 @@
               Adicionar ao carrinho
             </button>
             <button
-              v-if="book.is_available"
+              v-if="isAvailable"
               type="button"
               class="btn btn-outline btn-primary"
               @click="requisition"
             >
-              Comprar
+              Requisitar livro
             </button>
             <button
               type="button"
@@ -315,21 +315,19 @@ export default {
       if (window.showToast) window.showToast('Livro adicionado ao carrinho.', 'success');
     },
 
-    requisition() {
+    async requisition() {
       if (document.body.dataset.auth !== '1') {
         window.location.href = '/login';
         return;
       }
-      window.axios
-        .post('/api/requisitions', { book_id: this.bookId })
-        .then(() => {
-          this.fetchBook();
-          if (window.showToast) window.showToast('Requisição registada.', 'success');
-        })
-        .catch((e) => {
-          const msg = e.response?.data?.message || 'Não foi possível requisitar.';
-          if (window.showToast) window.showToast(msg, 'error');
-        });
+      try {
+        await window.axios.post('/api/requisitions', { book_id: Number(this.bookId) });
+        await this.fetchBook();
+        if (window.showToast) window.showToast('Requisição registada.', 'success');
+      } catch (e) {
+        const msg = e.response?.data?.message || 'Não foi possível requisitar.';
+        if (window.showToast) window.showToast(msg, 'error');
+      }
     },
 
     async toggleFavorite() {

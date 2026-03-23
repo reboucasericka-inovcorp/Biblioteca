@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -35,6 +37,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
+        'status',
     ];
 
     /**
@@ -99,5 +103,25 @@ class User extends Authenticatable
     public function favorites()
     {
         return $this->belongsToMany(Book::class, 'favorites')->withTimestamps();
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function chatRooms(): BelongsToMany
+    {
+        return $this->belongsToMany(ChatRoom::class, 'chat_room_user')->withTimestamps();
+    }
+
+    public function directConversationsAsUserOne(): HasMany
+    {
+        return $this->hasMany(DirectConversation::class, 'user_one_id');
+    }
+
+    public function directConversationsAsUserTwo(): HasMany
+    {
+        return $this->hasMany(DirectConversation::class, 'user_two_id');
     }
 }

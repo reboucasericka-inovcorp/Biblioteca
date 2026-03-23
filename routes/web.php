@@ -84,6 +84,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/requisitions', [RequisitionController::class, 'index'])
         ->name('requisitions.index');
 
+    Route::view('/chat', 'chat.index')
+        ->name('chat.index');
+
        /* Route::get('/test-email', function () {
 
             Mail::raw('Email de teste do sistema Biblioteca', function ($message) {

@@ -65,13 +65,22 @@
       <div class="mt-2 flex flex-col items-center gap-1">
         <template v-if="isAvailable(b)">
           <p class="text-xs text-success">Disponível</p>
-          <button
-            type="button"
-            class="w-full py-2 px-4 rounded-lg bg-primary text-primary-content font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-primary-focus"
-            @click="addToCart(b)"
-          >
-            Adicionar ao carrinho
-          </button>
+          <div class="w-full flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button
+              type="button"
+              class="w-full py-2 px-4 rounded-lg bg-primary text-primary-content font-medium text-sm hover:bg-primary-focus"
+              @click="addToCart(b)"
+            >
+              Adicionar ao carrinho
+            </button>
+            <button
+              type="button"
+              class="w-full py-2 px-4 rounded-lg border border-primary text-primary font-medium text-sm hover:bg-primary/5"
+              @click="requisition(b)"
+            >
+              Requisitar livro
+            </button>
+          </div>
         </template>
         <template v-else>
           <span class="badge badge-error badge-sm">Esgotado</span>
@@ -202,6 +211,23 @@ function addToCart(book) {
   cartStore.syncCartCount();
   if (window.showToast) window.showToast('Livro adicionado ao carrinho.', 'success');
   emit('add-to-cart', book);
-  emit('requisition', book.id);
+}
+
+function requisition(book) {
+  if (document.body.dataset.auth !== '1') {
+    window.location.href = '/login';
+    return;
+  }
+
+  window.axios
+    .post('/api/requisitions', { book_id: book.id })
+    .then(() => {
+      if (window.showToast) window.showToast('Requisição registada.', 'success');
+      emit('requisition', book.id);
+    })
+    .catch((e) => {
+      const msg = e.response?.data?.message || 'Não foi possível requisitar.';
+      if (window.showToast) window.showToast(msg, 'error');
+    });
 }
 </script>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryApiController;
 use App\Http\Controllers\Api\BookAvailabilityAlertApiController;
 use App\Http\Controllers\Api\BookSuggestionApiController;
 use App\Http\Controllers\Api\CartActivityController;
+use App\Http\Controllers\Api\ChatApiController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\GoogleBooksApiController;
@@ -68,4 +69,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/books/{book}/favorite', [FavoriteController::class, 'store']);
     Route::delete('/books/{book}/favorite', [FavoriteController::class, 'destroy']);
+
+    Route::prefix('chat')->group(function () {
+        Route::get('/users', [ChatApiController::class, 'users']);
+        Route::get('/rooms', [ChatApiController::class, 'rooms']);
+        Route::post('/rooms', [ChatApiController::class, 'storeRoom']);
+        Route::post('/rooms/{room}/invite', [ChatApiController::class, 'inviteUser']);
+        Route::delete('/rooms/{room}/users/{user}', [ChatApiController::class, 'removeUser']);
+        Route::post('/direct/{user}', [ChatApiController::class, 'startDirect']);
+        Route::get('/direct/{conversation}', [ChatApiController::class, 'directMessages']);
+        Route::get('/rooms/{room}/messages', [ChatApiController::class, 'roomMessages']);
+        Route::post('/messages', [ChatApiController::class, 'storeMessage']);
+        Route::post('/upload', [ChatApiController::class, 'upload']);
+        Route::post('/messages/read', [ChatApiController::class, 'markAsRead']);
+    });
 });

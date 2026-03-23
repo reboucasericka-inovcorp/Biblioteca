@@ -99,7 +99,7 @@
                 :href="`/books/${r.book.id}`"
                 class="link link-primary"
               >
-                {{ r.book.name }}
+                {{ r.book.title ?? r.book.name ?? '-' }}
               </a>
               <span v-else>-</span>
             </td>

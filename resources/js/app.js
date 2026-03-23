@@ -127,6 +127,8 @@ import OrdersTable from './components/admin/OrdersTable.vue';
 import SalesDashboard from './components/admin/SalesDashboard.vue';
 import UsersTable from './components/admin/UsersTable.vue';
 import ReviewsTable from './components/admin/ReviewsTable.vue';
+import ChatLayout from './components/chat/ChatLayout.vue';
+import ChatWidget from './components/chat/ChatWidget.vue';
 
 // Criar a app Vue e montar em #app; o HTML dentro de #app é usado como template,
 // mas evitamos manipular innerHTML manualmente.
@@ -154,7 +156,7 @@ app.component('orders-table', OrdersTable);
 app.component('sales-dashboard', SalesDashboard);
 app.component('users-table', UsersTable);
 app.component('reviews-table', ReviewsTable);
-
+app.component('chat-layout', ChatLayout);
 if (appEl) {
   app.mount('#app');
 }
@@ -165,3 +167,10 @@ if (!window.Livewire) {
   Alpine.start();
 }
 
+const widgetEl = document.getElementById('chat-widget-root');
+if (widgetEl) {
+  const widgetApp = createApp({});
+  widgetApp.use(createPinia());
+  widgetApp.component('chat-widget', ChatWidget);
+  widgetApp.mount('#chat-widget-root');
+}
