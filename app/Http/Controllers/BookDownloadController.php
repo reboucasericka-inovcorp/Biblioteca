@@ -28,7 +28,7 @@ class BookDownloadController extends Controller
 
         $hasActiveRequisition = $book->requisitions()
             ->where('user_id', $user->id)
-            ->where('status', Requisition::STATUS_ACTIVE)
+            ->whereIn('status', [Requisition::STATUS_ACTIVE, Requisition::STATUS_LATE])
             ->exists();
 
         if (!$hasActiveRequisition) {

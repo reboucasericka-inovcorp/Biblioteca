@@ -1,1 +1,6 @@
-@include('layouts.public', ['slot' => $slot])
+@props(['heading' => null])
+
+@include('layouts.public', [
+    'slot' => $slot,
+    'citizenAreaHeading' => $heading,
+])

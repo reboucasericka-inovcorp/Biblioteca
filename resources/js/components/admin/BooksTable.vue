@@ -20,6 +20,7 @@
         <option value="desc">DESC</option>
       </select>
       <button
+        v-if="userIsAdmin"
         type="button"
         @click="exportExcel"
         :disabled="exporting"

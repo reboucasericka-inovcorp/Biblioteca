@@ -39,7 +39,7 @@ class RequisitionServiceTest extends TestCase
             'id' => $requisition->id,
             'user_id' => $user->id,
             'book_id' => $book->id,
-            'status' => Requisition::STATUS_ACTIVE,
+            'status' => Requisition::STATUS_PENDING,
         ]);
     }
 
@@ -51,6 +51,7 @@ class RequisitionServiceTest extends TestCase
         Requisition::create([
             'user_id' => $owner->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
 
         $otherUser = $this->createCitizen();
@@ -83,7 +84,7 @@ class RequisitionServiceTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(UserRequisitionLimitExceededException::class);
-        $this->expectExceptionMessage('You already have 3 active requisitions.');
+        $this->expectExceptionMessage('You already have 3 requisitions pending or active on loan.');
 
         try {
             $this->service->createRequisition($user, $this->createBook()->id);

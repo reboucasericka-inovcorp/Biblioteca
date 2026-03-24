@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Message extends Model
@@ -35,5 +37,17 @@ class Message extends Model
     public function messageable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function reads(): HasMany
+    {
+        return $this->hasMany(MessageRead::class);
+    }
+
+    public function readByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'message_reads')
+            ->withPivot(['read_at'])
+            ->withTimestamps();
     }
 }

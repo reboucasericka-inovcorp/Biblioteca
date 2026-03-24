@@ -13,6 +13,12 @@
         class="w-full border border-gray-300 rounded-lg p-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         placeholder="Nome da sala"
       />
+      <input
+        v-model="avatar"
+        type="text"
+        class="w-full border border-gray-300 rounded-lg p-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        placeholder="URL do avatar (opcional)"
+      />
 
       <label class="text-sm font-medium text-gray-600">Convidar utilizadores</label>
       <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2 space-y-1">
@@ -57,6 +63,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'create']);
 const name = ref('');
+const avatar = ref('');
 const selectedIds = ref([]);
 
 watch(
@@ -64,6 +71,7 @@ watch(
   (isOpen) => {
     if (!isOpen) {
       name.value = '';
+      avatar.value = '';
       selectedIds.value = [];
     }
   }
@@ -76,7 +84,11 @@ function close() {
 function create() {
   const roomName = name.value.trim();
   if (!roomName) return;
-  emit('create', { name: roomName, user_ids: selectedIds.value });
+  emit('create', {
+    name: roomName,
+    avatar: avatar.value.trim() || null,
+    user_ids: selectedIds.value,
+  });
   close();
 }
 </script>

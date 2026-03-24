@@ -31,13 +31,24 @@ class Book extends Model
         'thumbnail_url',
         'published_date',
         'file_path',
+        'stock_reconciled',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'discount' => 'decimal:2',
         'is_active' => 'boolean',
+        'stock_reconciled' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Book $book) {
+            if (! array_key_exists('stock_reconciled', $book->getAttributes())) {
+                $book->stock_reconciled = true;
+            }
+        });
+    }
 
     // Criptografar campos sensíveis
     protected function bibliography(): Attribute

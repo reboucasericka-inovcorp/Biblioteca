@@ -151,6 +151,7 @@ class BookAvailabilityAlertTest extends TestCase
         return Requisition::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
     }
 }

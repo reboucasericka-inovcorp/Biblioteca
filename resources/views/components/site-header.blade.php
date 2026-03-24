@@ -1,13 +1,13 @@
 {{-- Cópia fiel do header original de resources/views/layouts/public.blade.php (commit 8aa14994) --}}
 <!-- TOPO -->
 <div class="w-full bg-[#000020] text-white text-sm">
-    <div class="max-w-[1700px] mx-auto px-6 py-2 grid grid-cols-3 items-center gap-4">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-2 grid grid-cols-3 items-center gap-4">
         <!-- vazio à esquerda -->
         <div></div>
         <!-- telefone centro -->
         <div class="flex items-center justify-center gap-4">
             <span>(+351) 912 349 054</span>
-            <a href="#" class="btn btn-xs rounded-full border-0 bg-white/15 text-white hover:bg-white/25">Suporte</a>
+            <a href="{{ route('chat.index') }}" class="btn btn-xs rounded-full border-0 bg-white/15 text-white hover:bg-white/25">Suporte</a>
         </div>
 
         <!-- redes sociais direita -->
@@ -34,13 +34,13 @@
 
 <!-- HEADER PRINCIPAL -->
 <div class="w-full bg-[#000020] text-white">
-    <div class="max-w-[1700px] mx-auto px-6 py-4 grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6 items-center">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6 items-center">
         <!-- esquerda -->
-        <!-- LOGO: cidadão autenticado volta ao dashboard; visitante/Admin vai à página inicial -->
-        <a href="{{ Auth::check() && Auth::user()->hasRole('Cidadao') ? route('dashboard.citizen') : url('/') }}" class="text-3xl font-bold leading-tight">
+        {{-- Destino do logo: rota genérica /dashboard redireciona por papel (sem hasRole aqui). --}}
+        <a href="{{ Auth::check() ? route('dashboard') : url('/') }}" class="text-3xl font-bold leading-tight">
             Inovcorp Library
         </a>
-        <!-- BUSCA GOOGLE (compacta no centro) -->
+        {{-- Mesma pesquisa Google (API) que em Livros / Autores / Editoras — sempre no centro da barra escura --}}
         <header-google-search></header-google-search>
 
        
@@ -51,6 +51,9 @@
             @php($user = Auth::user())
 
             {{-- Sair sempre visível para utilizadores autenticados --}}
+            <a href="{{ route('chat.index') }}" class="text-white/90 hover:text-white hover:underline">
+                Chat
+            </a>
             <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
                 <button type="submit" class="text-white/90 hover:text-white hover:underline">
@@ -165,80 +168,5 @@
 
 
 
-    </div>
-</div>
-
-<!-- MENU: Categorias, destaques, ofertas -->
-<div class="w-full bg-[#000020] text-white">
-    <div class="max-w-[1700px] mx-auto px-6 py-3 grid grid-cols-1 lg:grid-cols-[220px_1fr_140px] items-center gap-4">
-        <!-- Layout em grid: menu de categorias à esquerda, links no centro, ofertas à direita -->
-        <!-- Menu dropdown de categorias -->
-        <div class="relative group">
-            <button
-                type="button"
-                class="flex items-center gap-2 font-semibold uppercase tracking-wide"
-                aria-haspopup="true"
-                aria-expanded="false">
-                <span>☰</span>
-                <span>Categorias</span>
-            </button>
-            <!-- Dropdown de categorias (aparece ao passar o mouse) -->
-            <div
-                class="absolute left-0 top-full mt-2 w-[760px] max-w-[95vw] bg-white text-gray-800 rounded-sm shadow-2xl border border-gray-200 z-50 hidden group-hover:block group-focus-within:block">
-                <div class="px-5 py-4 border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wider text-gray-600">
-                    ☰ Categorias
-                </div>
-                <!-- Lista de categorias em 3 colunas -->
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 text-[12px] leading-6">
-                    <ul class="space-y-1 uppercase">
-                        <li><a href="#" class="hover:text-primary">Programação</a></li>
-                        <li><a href="#" class="hover:text-primary">Inteligência Artificial</a></li>
-                        <li><a href="#" class="hover:text-primary">Desenvolvimento web</a></li>
-                        <li><a href="#" class="hover:text-primary">Banco de dados</a></li>
-                        <li><a href="#" class="hover:text-primary">Redes e Segurança</a></li>
-                        <li><a href="#" class="hover:text-primary">DevOps</a></li>
-                        <li><a href="#" class="hover:text-primary">Ciência de Dados</a></li>
-                        <li><a href="#" class="hover:text-primary">Cloud Computing</a></li>
-                        <li><a href="#" class="hover:text-primary">Livros em destaque</a></li>
-                    </ul>
-
-                    <ul class="space-y-1 uppercase">
-                        <li><a href="#" class="hover:text-primary">Linguagens de Programação</a></li>
-                        <li><a href="#" class="hover:text-primary">Frameworks</a></li>
-                        <li><a href="#" class="hover:text-primary">Sistemas Operacionais</a></li>
-                        <li><a href="#" class="hover:text-primary">Arquitetura de Software</a></li>
-                        <li><a href="#" class="hover:text-primary">Machine Learning</a></li>
-                        <li><a href="#" class="hover:text-primary">Big Data</a></li>
-                        <li><a href="#" class="hover:text-primary">Blockchain</a></li>
-                        <li><a href="#" class="hover:text-primary">Internet das Coisas</a></li>
-                        <li><a href="#" class="hover:text-primary">Carreira em TI</a></li>
-                    </ul>
-
-                    <ul class="space-y-1 uppercase">
-                        <li><a href="#" class="hover:text-primary">Certificações</a></li>
-                        <li><a href="#" class="hover:text-primary">Ferramentas de Desenvolvimento</a></li>
-                        <li><a href="#" class="hover:text-primary">Metodologias Ágeis</a></li>
-                        <li><a href="#" class="hover:text-primary">Teste de Software</a></li>
-                        <li><a href="#" class="hover:text-primary">UX/UI Design</a></li>
-                        <li><a href="#" class="hover:text-primary">Infraestrutura</a></li>
-                        <li><a href="#" class="hover:text-primary">Segurança da Informação</a></li>
-                        <li><a href="#" class="hover:text-primary">Novidades em Tecnologia</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-center gap-8 font-medium uppercase text-sm">
-            <a href="#" class="hover:underline">Destaques</a>
-            <a href="#" class="hover:underline">Mais Vendidos</a>
-            <a href="#" class="hover:underline">Autores</a>
-            <a href="#" class="hover:underline">Editoras</a>
-            <a href="#" class="hover:underline">Novidades</a>
-        </div>
-
-        <div class="text-right">
-            <a href="#" class="font-medium uppercase text-sm hover:underline">Ofertas</a>
-        </div>
     </div>
 </div>

@@ -1,6 +1,14 @@
 <template>
   <div class="flex h-full min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
     <div
+      v-if="isActionLoading"
+      class="absolute inset-0 z-40 bg-black/20 flex items-center justify-center"
+    >
+      <div class="px-3 py-2 rounded-md bg-white text-sm text-gray-700 shadow">
+        A processar...
+      </div>
+    </div>
+    <div
       v-if="isSidebarOpen"
       class="fixed inset-0 bg-black/30 z-20 md:hidden"
       @click="isSidebarOpen = false"
@@ -14,6 +22,7 @@
       @update:search="handleSearchUsers"
       @select-conversation="handleSelectConversation"
       @open-room-modal="showRoomModal = true"
+      @remove-conversation="handleRemoveConversation"
       @close-sidebar="isSidebarOpen = false"
     />
 
@@ -26,11 +35,16 @@
       :typing-label="typingLabel"
       :messages="messages"
       :can-send="Boolean(activeTarget)"
+      :show-room-settings="isAdmin && activeTarget?.type === 'room'"
+      :is-admin="isAdmin"
       :current-user-id="currentUserId"
       @send="handleSendMessage"
       @typing="handleTyping"
       @upload-image="handleUploadImage"
+      @edit-message="handleEditMessage"
+      @delete-message="handleDeleteMessage"
       @toggle-sidebar="isSidebarOpen = !isSidebarOpen"
+      @open-room-settings="openRoomSettings"
     />
 
     <RoomCreatorModal
@@ -38,6 +52,15 @@
       :users="users"
       @close="showRoomModal = false"
       @create="handleCreateRoom"
+    />
+    <RoomSettingsModal
+      :open="showRoomSettingsModal"
+      :room="activeRoomForSettings"
+      :users="users"
+      @close="showRoomSettingsModal = false"
+      @save="handleUpdateRoom"
+      @invite-member="handleInviteMember"
+      @remove-member="handleRemoveMember"
     />
   </div>
 </template>
@@ -47,16 +70,26 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import ChatSidebar from './ChatSidebar.vue';
 import ChatWindow from './ChatWindow.vue';
 import RoomCreatorModal from './RoomCreatorModal.vue';
+import RoomSettingsModal from './RoomSettingsModal.vue';
 import {
   createChatRoom,
+  fetchChatPresence,
   fetchChatRooms,
   fetchChatUsers,
   fetchDirectConversation,
   fetchRoomMessages,
+  inviteUserToRoom,
   markMessagesAsRead,
+  removeUserFromRoom,
+  deleteChatMessage,
+  updateChatMessage,
+  deleteChatRoom,
+  deleteDirectConversation,
   sendChatMessage,
+  setChatPresenceStatus,
   startDirectConversation,
   subscribeUserChannel,
+  updateChatRoom,
   uploadChatImage,
   subscribeConversation,
   subscribeRoom,
@@ -67,6 +100,7 @@ const rooms = ref([]);
 const messages = ref([]);
 const activeTarget = ref(null);
 const showRoomModal = ref(false);
+const showRoomSettingsModal = ref(false);
 const activeSubscription = ref(null);
 const search = ref('');
 const typingLabel = ref('');
@@ -75,8 +109,10 @@ const onlineByUserId = ref({});
 const localUnreadByKey = ref({});
 const directConversationByPeerId = ref({});
 let userFeedSubscription = null;
+let presenceRefreshIntervalId = null;
 const isSidebarOpen = ref(false);
 const notificationAudio = ref(null);
+const isActionLoading = ref(false);
 
 const currentUserId = Number(
   document.querySelector('meta[name="user-id"]')?.getAttribute('content') || 0
@@ -114,7 +150,7 @@ const conversationItems = computed(() => {
     preview: user.last_message?.body ?? 'Clique para conversar',
     timeLabel: formatTime(user.last_message?.created_at),
     unreadCount: Number(user.unread_count ?? 0) + Number(localUnreadByKey.value[`direct-${user.id}`] ?? 0),
-    status: onlineByUserId.value[user.id] ?? user.status,
+    status: isUserOnline(user) ? 'online' : 'offline',
     avatarUrl: user.avatar ?? '',
   }));
 
@@ -134,12 +170,19 @@ const conversationItems = computed(() => {
 
   return [...userItems, ...roomItems];
 });
+const activeRoomForSettings = computed(() => {
+  if (activeTarget.value?.type !== 'room') return null;
+  return rooms.value.find((room) => Number(room.id) === Number(activeTarget.value.id)) ?? null;
+});
 
 onMounted(async () => {
-  await Promise.all([loadUsers(), loadRooms()]);
+  await setChatPresenceOnline();
+  await Promise.all([loadUsers(), loadRooms(), loadPresence()]);
   hydrateOnlineUsersFromGlobal();
   window.addEventListener('chat-presence-updated', handleGlobalPresenceUpdate);
   subscribeToUserFeed();
+  presenceRefreshIntervalId = window.setInterval(loadPresence, 30000);
+  window.addEventListener('beforeunload', handleBeforeUnload);
   notificationAudio.value = new Audio('/sounds/notify.mp3');
 });
 
@@ -147,6 +190,12 @@ onBeforeUnmount(() => {
   unsubscribeActiveChannel();
   window.removeEventListener('chat-presence-updated', handleGlobalPresenceUpdate);
   unsubscribeUserFeed();
+  if (presenceRefreshIntervalId) {
+    window.clearInterval(presenceRefreshIntervalId);
+    presenceRefreshIntervalId = null;
+  }
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+  void setChatPresenceOffline();
 });
 
 async function loadUsers(search = '') {
@@ -155,6 +204,40 @@ async function loadUsers(search = '') {
 
 async function loadRooms() {
   rooms.value = await fetchChatRooms();
+}
+
+async function loadPresence() {
+  try {
+    const onlineUsers = await fetchChatPresence();
+    const nextMap = {};
+    for (const user of onlineUsers) {
+      nextMap[Number(user.id)] = 'online';
+    }
+    onlineByUserId.value = nextMap;
+    refreshActiveStatus();
+  } catch (error) {
+    // fail silently to keep chat usable
+  }
+}
+
+async function setChatPresenceOnline() {
+  try {
+    await setChatPresenceStatus('online');
+  } catch (error) {
+    // fail silently
+  }
+}
+
+async function setChatPresenceOffline() {
+  try {
+    await setChatPresenceStatus('offline');
+  } catch (error) {
+    // fail silently
+  }
+}
+
+function handleBeforeUnload() {
+  void setChatPresenceOffline();
 }
 
 function handleSearchUsers(value) {
@@ -208,6 +291,11 @@ async function handleSelectRoom(room) {
   await afterTargetChange();
 }
 
+function openRoomSettings() {
+  if (!isAdmin.value || activeTarget.value?.type !== 'room') return;
+  showRoomSettingsModal.value = true;
+}
+
 async function handleCreateRoom(payload) {
   try {
     const room = await createChatRoom(payload);
@@ -226,18 +314,177 @@ async function handleCreateRoom(payload) {
   }
 }
 
+async function handleUpdateRoom(payload) {
+  if (!payload?.id) return;
+  try {
+    const room = await updateChatRoom(payload.id, {
+      name: payload.name,
+      avatar: payload.avatar,
+    });
+    showRoomSettingsModal.value = false;
+    await loadRooms();
+
+    if (room && activeTarget.value?.type === 'room' && Number(activeTarget.value.id) === Number(room.id)) {
+      activeTarget.value = {
+        ...activeTarget.value,
+        name: room.name,
+        avatar: room.avatar ?? '',
+      };
+    }
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Não foi possível atualizar a sala.';
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    }
+  }
+}
+
+async function handleInviteMember(userId) {
+  const room = activeRoomForSettings.value;
+  if (!room?.id || !userId) return;
+  try {
+    await inviteUserToRoom(room.id, userId);
+    await loadRooms();
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Não foi possível convidar o utilizador.';
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    }
+  }
+}
+
+async function handleRemoveMember(member) {
+  const room = activeRoomForSettings.value;
+  if (!room?.id || !member?.id) return;
+  try {
+    await removeUserFromRoom(room.id, member.id);
+    await loadRooms();
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Não foi possível remover o utilizador.';
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    }
+  }
+}
+
+async function handleRemoveConversation(item) {
+  if (!item) return;
+  const confirmed = window.confirm('Tem certeza que deseja apagar?');
+  if (!confirmed) return;
+
+  try {
+    isActionLoading.value = true;
+    if (item.type === 'room') {
+      await deleteChatRoom(item.id);
+      await loadRooms();
+      if (activeTarget.value?.type === 'room' && Number(activeTarget.value.id) === Number(item.id)) {
+        activeTarget.value = null;
+        messages.value = [];
+      }
+      if (window.showToast) {
+        window.showToast('Sala removida com sucesso.', 'success');
+      }
+      return;
+    }
+
+    const peerId = Number(item.raw?.id ?? item.id);
+    let conversationId = Number(item.raw?.direct_conversation_id ?? directConversationByPeerId.value[peerId] ?? 0);
+    if (!conversationId) {
+      return;
+    }
+
+    await deleteDirectConversation(conversationId);
+    await loadUsers(search.value);
+    if (activeTarget.value?.type === 'direct' && Number(activeTarget.value.id) === conversationId) {
+      activeTarget.value = null;
+      messages.value = [];
+    }
+    if (window.showToast) {
+      window.showToast('Conversa removida com sucesso.', 'success');
+    }
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Não foi possível remover a conversa.';
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    }
+  } finally {
+    isActionLoading.value = false;
+  }
+}
+
+async function handleEditMessage(message) {
+  if (!message?.id) return;
+  const nextBody = window.prompt('Editar mensagem:', message.body ?? '');
+  if (nextBody === null) return;
+  const trimmed = nextBody.trim();
+  if (!trimmed) return;
+
+  try {
+    isActionLoading.value = true;
+    const updated = await updateChatMessage(message.id, { body: trimmed });
+    messages.value = messages.value.map((entry) => (
+      Number(entry.id) === Number(updated.id)
+        ? { ...entry, ...updated }
+        : entry
+    ));
+    if (activeTarget.value) {
+      updateConversationPreview(activeTarget.value, updated);
+    }
+    if (window.showToast) {
+      window.showToast('Mensagem atualizada.', 'success');
+    }
+  } catch (error) {
+    const errorMessage = error?.response?.data?.message || 'Não foi possível editar a mensagem.';
+    if (window.showToast) {
+      window.showToast(errorMessage, 'error');
+    }
+  } finally {
+    isActionLoading.value = false;
+  }
+}
+
+async function handleDeleteMessage(message) {
+  if (!message?.id) return;
+  const confirmed = window.confirm('Tem certeza que deseja apagar?');
+  if (!confirmed) return;
+
+  try {
+    isActionLoading.value = true;
+    await deleteChatMessage(message.id);
+    messages.value = messages.value.filter((entry) => Number(entry.id) !== Number(message.id));
+    if (window.showToast) {
+      window.showToast('Mensagem apagada.', 'success');
+    }
+  } catch (error) {
+    const errorMessage = error?.response?.data?.message || 'Não foi possível apagar a mensagem.';
+    if (window.showToast) {
+      window.showToast(errorMessage, 'error');
+    }
+  } finally {
+    isActionLoading.value = false;
+  }
+}
+
 async function handleSendMessage(body) {
   if (!activeTarget.value) return;
 
-  const message = await sendChatMessage({
-    target_type: activeTarget.value.type,
-    target_id: activeTarget.value.id,
-    body,
-  });
+  try {
+    const message = await sendChatMessage({
+      target_type: toApiTargetType(activeTarget.value.type),
+      target_id: activeTarget.value.id,
+      body,
+    });
 
-  messages.value.push(message);
-  updateConversationPreview(activeTarget.value, message);
-  clearTypingLabel();
+    messages.value.push(message);
+    updateConversationPreview(activeTarget.value, message);
+    clearTypingLabel();
+  } catch (error) {
+    const message = error?.response?.data?.message || 'Falha ao enviar mensagem.';
+    if (window.showToast) {
+      window.showToast(message, 'error');
+    }
+    console.error(error);
+  }
 }
 
 async function handleUploadImage(file) {
@@ -246,7 +493,7 @@ async function handleUploadImage(file) {
     const uploaded = await uploadChatImage(file);
     if (!uploaded?.url) return;
     const message = await sendChatMessage({
-      target_type: activeTarget.value.type,
+      target_type: toApiTargetType(activeTarget.value.type),
       target_id: activeTarget.value.id,
       body: uploaded.url,
       type: 'image',
@@ -306,7 +553,7 @@ async function afterTargetChange() {
 
   if (!activeTarget.value) return;
   await markMessagesAsRead({
-    target_type: activeTarget.value.type,
+    target_type: toApiTargetType(activeTarget.value.type),
     target_id: activeTarget.value.id,
   });
 }
@@ -413,6 +660,20 @@ function setUserOnlineStatus(userId, status) {
   }
 }
 
+function isUserOnline(user) {
+  if (!user) return false;
+  if (onlineByUserId.value[user.id] === 'online') return true;
+
+  const lastSeenRaw = user.last_seen_at;
+  if (!lastSeenRaw) return false;
+
+  const lastSeenMs = new Date(lastSeenRaw).getTime();
+  if (Number.isNaN(lastSeenMs)) return false;
+
+  const nowMs = Date.now();
+  return nowMs - lastSeenMs < 2 * 60 * 1000;
+}
+
 function hydrateOnlineUsersFromGlobal() {
   const globalMap = window.onlineUsersMap ?? {};
   onlineByUserId.value = { ...globalMap };
@@ -437,8 +698,9 @@ function clearUnreadForActiveConversation() {
 function updateConversationPreview(target, message) {
   if (!target || !message) return;
   if (target.type === 'direct') {
+    const peerId = Number(target.peer_user_id ?? target.id);
     users.value = users.value.map((user) => {
-      if (user.id !== target.id) return user;
+      if (Number(user.id) !== peerId) return user;
       return {
         ...user,
         last_message: {
@@ -524,7 +786,8 @@ function refreshActiveStatus() {
   if (activeTarget.value?.type !== 'direct') return;
   const peerId = Number(activeTarget.value.peer_user_id ?? 0);
   if (!peerId) return;
-  activeTarget.value.status = onlineByUserId.value[peerId] ?? 'offline';
+  const peer = users.value.find((user) => Number(user.id) === peerId);
+  activeTarget.value.status = isUserOnline(peer) ? 'online' : 'offline';
 }
 
 function playIncomingSound() {
@@ -535,5 +798,9 @@ function playIncomingSound() {
   } catch (error) {
     // fail silently to avoid blocking message flow
   }
+}
+
+function toApiTargetType(type) {
+  return type === 'direct' ? 'conversation' : type;
 }
 </script>

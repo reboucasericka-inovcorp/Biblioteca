@@ -13,6 +13,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use InvalidArgumentException;
 
 class RequisitionApiController extends Controller
 {
@@ -37,7 +38,7 @@ class RequisitionApiController extends Controller
         }
 
         // FIX: evitar orderBy com campos arbitrários vindos do request (segurança)
-        $allowedSorts = ['created_at', 'request_date', 'return_date', 'status'];
+        $allowedSorts = ['created_at', 'request_date', 'due_date', 'return_date', 'status'];
 
         $sort = $request->get('sort', 'created_at');
         if (!in_array($sort, $allowedSorts)) {
@@ -62,11 +63,13 @@ class RequisitionApiController extends Controller
         }
 
         $active = (clone $query)->where('status', Requisition::STATUS_ACTIVE)->count();
+        $pending = (clone $query)->where('status', Requisition::STATUS_PENDING)->count();
         $last30Days = (clone $query)->where('request_date', '>=', now()->subDays(30))->count();
         $deliveredToday = (clone $query)->whereDate('return_date', today())->count();
 
         return ApiResponse::success([
             'active' => $active,
+            'pending' => $pending,
             'last_30_days' => $last30Days,
             'delivered_today' => $deliveredToday,
         ]);
@@ -102,5 +105,29 @@ class RequisitionApiController extends Controller
         }
 
         return ApiResponse::success(null, 'Requisition created successfully.', 201);
+    }
+
+    public function approve(Requisition $requisition)
+    {
+        try {
+            $this->requisitionService->approveRequisition($requisition);
+        } catch (InvalidArgumentException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        } catch (BookUnavailableException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
+
+        return ApiResponse::success(null, 'Requisition approved.');
+    }
+
+    public function reject(Requisition $requisition)
+    {
+        try {
+            $this->requisitionService->rejectRequisition($requisition);
+        } catch (InvalidArgumentException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
+
+        return ApiResponse::success(null, 'Requisition rejected.');
     }
 }

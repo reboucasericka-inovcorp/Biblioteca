@@ -18,10 +18,11 @@
         class="flex"
         :class="entry.message.user_id === currentUserId ? 'justify-end' : 'justify-start'"
       >
-        <div
-          class="max-w-[70%] rounded-2xl px-3 py-2 shadow-sm"
-          :class="entry.message.user_id === currentUserId ? 'bg-indigo-500 text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'"
-        >
+        <div class="group relative max-w-[70%]">
+          <div
+            class="max-w-full rounded-2xl px-3 py-2 shadow-sm"
+            :class="entry.message.user_id === currentUserId ? 'bg-indigo-500 text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'"
+          >
           <img
             v-if="entry.message.type === 'image'"
             :src="entry.message.body"
@@ -34,6 +35,26 @@
             :class="entry.message.user_id === currentUserId ? 'text-indigo-100' : 'text-gray-400'"
           >
             {{ formatTime(entry.message.created_at) }}
+          </div>
+          </div>
+          <div
+            v-if="canManageMessage(entry.message)"
+            class="absolute -top-2 right-0 hidden group-hover:flex items-center gap-1 bg-white border border-gray-200 rounded-md shadow-sm p-1"
+          >
+            <button
+              type="button"
+              class="text-xs text-gray-600 hover:text-indigo-600"
+              @click="emit('edit-message', entry.message)"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="text-xs text-gray-600 hover:text-red-600"
+              @click="emit('delete-message', entry.message)"
+            >
+              Apagar
+            </button>
           </div>
         </div>
       </div>
@@ -48,7 +69,9 @@ import { computed, nextTick, ref, watch } from 'vue';
 const props = defineProps({
   messages: { type: Array, required: true },
   currentUserId: { type: Number, required: true },
+  isAdmin: { type: Boolean, default: false },
 });
+const emit = defineEmits(['edit-message', 'delete-message']);
 
 const messagesEl = ref(null);
 const groupedEntries = computed(() => {
@@ -132,6 +155,11 @@ function isSameDay(a, b) {
     && a.getMonth() === b.getMonth()
     && a.getDate() === b.getDate()
   );
+}
+
+function canManageMessage(message) {
+  if (!message) return false;
+  return Number(message.user_id) === Number(props.currentUserId) || props.isAdmin;
 }
 </script>
 

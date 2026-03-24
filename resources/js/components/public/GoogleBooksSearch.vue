@@ -1,9 +1,7 @@
 <template>
   <div class="card bg-base-100 shadow mt-6">
     <div class="card-body p-6">
-      <h3 class="card-title text-lg">
-        {{ userIsAdmin ? 'Importar da Google Books' : 'Pesquisar na Google Books' }}
-      </h3>
+     
       <p class="text-sm text-base-content/70">
         {{ userIsAdmin
           ? 'Pesquise livros no Google Books e importe para a base de dados local.'
@@ -127,6 +125,8 @@ import { unwrap } from '../../api';
 
 const props = defineProps({
   userIsAdmin: { type: Boolean, default: false },
+  /** Estilo compacto na faixa branca do dashboard (sem margem superior extra). */
+  embedded: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['imported', 'suggested', 'requisitioned']);

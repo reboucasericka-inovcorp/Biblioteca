@@ -9,11 +9,15 @@ class Requisition extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_RETURNED = 'returned';
 
     public const STATUS_LATE = 'late';
+
+    public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
         'sequential_number',
@@ -86,7 +90,7 @@ class Requisition extends Model
             $requisition->request_date ??= now();
             $requisition->due_date ??= now()->addDays(5);
             if (! $requisition->status) {
-                $requisition->status = self::STATUS_ACTIVE;
+                $requisition->status = self::STATUS_PENDING;
             }
         });
     }

@@ -1,16 +1,23 @@
 <template>
    <div class="space-y-4">
     <!-- Indicadores no topo -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Pendentes de aprovação -->
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body p-6">
+          <p class="text-sm text-base-content/70">Pendentes de aprovação</p>
+          <p class="text-2xl font-bold text-warning">{{ stats.pending ?? 0 }}</p>
+        </div>
+      </div>
       <!-- Requisições Ativas -->
-      <div class="card bg-base-100 shadow-md border-l-4 border-info">
+      <div class="card bg-base-100 shadow-md">
         <div class="card-body p-6">
           <p class="text-sm text-base-content/70">Requisições Ativas</p>
           <p class="text-2xl font-bold text-info">{{ stats.active }}</p>
         </div>
       </div>
        <!-- Requisições nos últimos 30 dias -->
-      <div class="card bg-base-100 shadow-md border-l-4 border-success">
+      <div class="card bg-base-100 shadow-md">
         <div class="card-body p-6">
           <p class="text-sm text-base-content/70">Requisições nos últimos 30 dias</p>
           <p class="text-2xl font-bold text-success">{{ stats.last_30_days }}</p>
@@ -18,7 +25,7 @@
       </div>
 
       <!-- Livros entregues Hoje -->
-      <div class="card bg-base-100 shadow-md border-l-4 border-secondary">
+      <div class="card bg-base-100 shadow-md">
         <div class="card-body p-6">
           <p class="text-sm text-base-content/70">Livros entregues Hoje</p>
           <p class="text-2xl font-bold text-secondary">{{ stats.delivered_today }}</p>
@@ -39,8 +46,8 @@
         class="select select-bordered min-w-[140px] bg-base-100"
       >
         <option value="">Todos os status</option>
+        <option value="pending">Pendentes</option>
         <option value="active">Ativas</option>
-        <option value="returned">Devolvidas</option>
         <option value="late">Atrasadas</option>
       </select>
       <select
@@ -71,7 +78,7 @@
         <thead>
           <tr>
             <th class="whitespace-nowrap min-w-[6rem]">Nº</th>
-            <th class="whitespace-nowrap min-w-[8rem]">Utilizador</th>
+            <th v-if="userIsAdmin" class="whitespace-nowrap min-w-[8rem]">Utilizador</th>
             <th class="min-w-[10rem]">Livro</th>
             <th class="whitespace-nowrap min-w-[6rem]">Data requisição</th>
             <th class="whitespace-nowrap min-w-[6rem]">Data devolução</th>
@@ -83,15 +90,15 @@
         <tbody>
           <tr v-for="r in requisitions" :key="r.id">
             <td class="p-4 font-mono text-sm font-medium whitespace-nowrap">{{ r.sequential_number }}</td>
-            <td class="p-4 text-sm whitespace-nowrap">
+            <td v-if="userIsAdmin" class="p-4 text-sm whitespace-nowrap">
               <a
-                v-if="userIsAdmin && r.user"
+                v-if="r.user"
                 :href="`/users/${r.user.id}`"
                 class="link link-primary"
               >
                 {{ r.user.name }}
               </a>
-              <span v-else>{{ r.user?.name ?? '-' }}</span>
+              <span v-else>-</span>
             </td>
             <td class="p-4 text-sm min-w-[10rem]">
               <a
@@ -109,29 +116,45 @@
             <td class="p-4 whitespace-nowrap">
               <span
                 class="badge badge-sm"
-                :class="{
-                  'badge-primary': r.status === 'active',
-                  'badge-success': r.status === 'returned',
-                  'badge-warning': r.status === 'late',
-                  'badge-ghost': !['active','returned','late'].includes(r.status)
-                }"
+                :class="statusBadgeClass(r.status)"
               >
                 {{ statusLabel(r.status) }}
               </span>
             </td>
             <td v-if="userIsAdmin" class="p-4 whitespace-nowrap">
-              <button
-                v-if="r.status === 'active' || r.status === 'late'"
-                @click="confirmReturn(r.id)"
-                :disabled="confirmingId === r.id"
-                class="btn btn-sm btn-primary"
-              >
-                {{ confirmingId === r.id ? '...' : 'Confirmar devolução' }}
-              </button>
+              <div class="flex flex-wrap gap-2">
+                <template v-if="r.status === 'pending'">
+                  <button
+                    type="button"
+                    @click="approve(r.id)"
+                    :disabled="actionId === r.id"
+                    class="btn btn-sm btn-success"
+                  >
+                    {{ actionId === r.id ? '…' : 'Aprovar' }}
+                  </button>
+                  <button
+                    type="button"
+                    @click="reject(r.id)"
+                    :disabled="actionId === r.id"
+                    class="btn btn-sm btn-ghost"
+                  >
+                    {{ actionId === r.id ? '…' : 'Rejeitar' }}
+                  </button>
+                </template>
+                <button
+                  v-else-if="r.status === 'active' || r.status === 'late'"
+                  type="button"
+                  @click="confirmReturn(r.id)"
+                  :disabled="actionId === r.id"
+                  class="btn btn-sm btn-primary"
+                >
+                  {{ actionId === r.id ? '…' : 'Confirmar devolução' }}
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="requisitions.length === 0">
-            <td :colspan="userIsAdmin ? 8 : 7" class="p-6 text-center text-sm text-base-content/60">
+            <td :colspan="userIsAdmin ? 8 : 6" class="p-6 text-center text-sm text-base-content/60">
               Nenhuma requisição encontrada.
             </td>
           </tr>
@@ -179,8 +202,9 @@ defineProps({
 });
 
 const requisitions = ref([]);
-const confirmingId = ref(null);
-const stats = ref({ active: 0, last_30_days: 0, delivered_today: 0 });
+/** Pedido em curso: aprovar, rejeitar ou confirmar devolução */
+const actionId = ref(null);
+const stats = ref({ active: 0, pending: 0, last_30_days: 0, delivered_today: 0 });
 const status = ref('');
 const sort = ref('created_at');
 const dir = ref('desc');
@@ -229,12 +253,62 @@ function formatDate(val) {
 }
 
 function statusLabel(s) {
-  const labels = { active: 'Ativa', returned: 'Devolvida', late: 'Atrasada' };
+  const labels = {
+    pending: 'Pendente',
+    active: 'Ativa',
+    returned: 'Devolvida',
+    late: 'Atrasada',
+    rejected: 'Rejeitada',
+  };
   return labels[s] ?? s;
 }
 
+function statusBadgeClass(s) {
+  const map = {
+    pending: 'badge-warning',
+    active: 'badge-primary',
+    returned: 'badge-success',
+    late: 'badge-error',
+    rejected: 'badge-ghost',
+  };
+  return map[s] ?? 'badge-ghost';
+}
+
+async function approve(requisitionId) {
+  actionId.value = requisitionId;
+  try {
+    await window.axios.patch(`/api/requisitions/${requisitionId}/approve`);
+    window.showToast('Pedido aprovado.', 'success');
+    await loadStats();
+    await load();
+  } catch (e) {
+    const msg = e.response?.data?.message ?? 'Erro ao aprovar.';
+    window.showToast(msg, 'error');
+  } finally {
+    actionId.value = null;
+  }
+}
+
+async function reject(requisitionId) {
+  if (!window.confirm('Rejeitar este pedido? O cidadão verá o estado como rejeitado.')) {
+    return;
+  }
+  actionId.value = requisitionId;
+  try {
+    await window.axios.patch(`/api/requisitions/${requisitionId}/reject`);
+    window.showToast('Pedido rejeitado.', 'success');
+    await loadStats();
+    await load();
+  } catch (e) {
+    const msg = e.response?.data?.message ?? 'Erro ao rejeitar.';
+    window.showToast(msg, 'error');
+  } finally {
+    actionId.value = null;
+  }
+}
+
 async function confirmReturn(requisitionId) {
-  confirmingId.value = requisitionId;
+  actionId.value = requisitionId;
   try {
     await window.axios.post(`/api/requisitions/${requisitionId}/return`);
     await loadStats();
@@ -243,7 +317,7 @@ async function confirmReturn(requisitionId) {
     const msg = e.response?.data?.message ?? 'Erro ao confirmar devolução.';
     window.showToast(msg, 'error');
   } finally {
-    confirmingId.value = null;
+    actionId.value = null;
   }
 }
 

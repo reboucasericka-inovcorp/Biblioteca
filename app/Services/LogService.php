@@ -53,7 +53,7 @@ class LogService
                 'module' => $module,
                 'object_id' => $objectId,
                 'change' => $change,
-                'ip' => request()->ip(),
+                'ip' => request()?->ip(),
                 'browser' => self::getBrowser(),
             ]);
         } catch (Throwable) {
@@ -170,7 +170,7 @@ class LogService
      */
     private static function getBrowser(): string
     {
-        $userAgent = request()->userAgent();
+        $userAgent = request()?->userAgent();
         
         if (! $userAgent) {
             return 'Unknown';

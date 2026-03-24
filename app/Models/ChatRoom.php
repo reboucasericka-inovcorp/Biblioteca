@@ -20,7 +20,9 @@ class ChatRoom extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'chat_room_user')->withTimestamps();
+        return $this->belongsToMany(User::class, 'chat_room_user')
+            ->withPivot(['role'])
+            ->withTimestamps();
     }
 
     public function creator(): BelongsTo

@@ -1,8 +1,11 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-    <!-- Pesquisar Google Books (compacto no topo) -->
+  <div class="pb-12">
+    <!-- Pesquisa Google Books API: resultados com Requisitar / Sugerir aquisição (a barra compacta no topo da página fica no site-header) -->
     <section class="mb-10">
-      <google-books-search :user-is-admin="false" @suggested="loadSuggestions" @requisitioned="loadRequisitions" />
+      <google-books-search :user-is-admin="false" />
+      <p class="mt-4 text-sm text-base-content/80">
+        <a href="/requisitions" class="link link-primary font-medium">Requisições — ver lista e estado dos pedidos</a>
+      </p>
     </section>
 
     <!-- Seções horizontais estilo Netflix / Amazon -->
@@ -10,10 +13,10 @@
       <!-- 📚 Continue Reading -->
       
 
-      <!-- ⭐ My Favorites -->
+      <!--  My Favorites -->
       <section class="space-y-4">
         <h2 class="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-          ⭐ My Favorites ({{ favoritesStore.favorites.length }})
+          Meus Favoritos ({{ favoritesStore.favorites.length }})
         </h2>
         <div v-if="favoritesStore.favoritesLoading" class="rounded-xl bg-base-200/50 border border-base-300 py-12 text-center text-base-content/60">
           A carregar...
@@ -30,10 +33,10 @@
         />
       </section>
 
-      <!-- 🔥 Recommended for You -->
+      <!-- Recomendações para você -->
       <section class="space-y-4">
         <h2 class="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-          🔥 Recommended for You
+          Recomendações
         </h2>
         <div v-if="recommendedLoading" class="rounded-xl bg-base-200/50 border border-base-300 py-12 text-center text-base-content/60">
           A carregar...
@@ -45,10 +48,10 @@
         />
       </section>
 
-      <!-- 🆕 Latest Books -->
+      <!--Livros mais recentes -->
       <section class="space-y-4">
         <h2 class="text-xl sm:text-2xl font-bold text-base-content tracking-tight">
-          🆕 Latest Books
+          Livros mais recentes
         </h2>
         <div v-if="latestLoading" class="rounded-xl bg-base-200/50 border border-base-300 py-12 text-center text-base-content/60">
           A carregar...
@@ -65,8 +68,8 @@
     <div class="mt-14 space-y-10">
       <section class="card bg-base-100 shadow-sm border border-base-200 rounded-xl overflow-hidden">
         <div class="card-body p-6">
-          <h3 class="card-title text-lg">📨 Meus pedidos</h3>
-          <p class="text-sm text-base-content/70">Pedidos solicitados.</p>
+          <h3 class="card-title text-lg">Meus pedidos solicitados</h3>
+          
           <div v-if="suggestionsLoading" class="py-8 text-center text-base-content/60">
             A carregar...
           </div>
@@ -118,7 +121,7 @@
       </section>
 
       <section class="space-y-4">
-        <h3 class="text-xl font-bold text-base-content tracking-tight">📚 Minhas requisições</h3>
+        <h3 class="text-xl font-bold text-base-content tracking-tight">Minhas requisições</h3>
         <requisitions-table :user-is-admin="false" />
       </section>
     </div>
@@ -126,7 +129,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { unwrap, unwrapPage } from '../../api';
 import { useFavoritesStore } from '../../stores/favoritesStore.js';
 
@@ -199,10 +202,19 @@ function formatDate(val) {
   });
 }
 
+function onSuggestionsRefresh() {
+  loadSuggestions();
+}
+
 onMounted(() => {
   loadSuggestions();
   favoritesStore.loadFavorites();
   loadRecommended();
   loadLatest();
+  window.addEventListener('suggestions-refresh', onSuggestionsRefresh);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('suggestions-refresh', onSuggestionsRefresh);
 });
 </script>

@@ -60,12 +60,22 @@
             </div>
             <div class="flex items-center justify-between gap-2 mt-0.5">
               <div class="text-sm text-gray-500 truncate">{{ item.preview }}</div>
-              <span
-                v-if="item.unreadCount > 0"
-                class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs"
-              >
-                {{ item.unreadCount }}
-              </span>
+              <div class="flex items-center gap-1">
+                <span
+                  v-if="item.unreadCount > 0"
+                  class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-xs"
+                >
+                  {{ item.unreadCount }}
+                </span>
+                <button
+                  type="button"
+                  class="text-gray-400 hover:text-red-500 text-xs px-1"
+                  @click.stop="$emit('remove-conversation', item)"
+                  aria-label="Remover conversa"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -83,7 +93,7 @@ defineProps({
   isMobileOpen: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['update:search', 'select-conversation', 'open-room-modal', 'close-sidebar']);
+const emit = defineEmits(['update:search', 'select-conversation', 'open-room-modal', 'close-sidebar', 'remove-conversation']);
 
 function selectConversation(item) {
   emit('select-conversation', item);

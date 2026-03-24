@@ -82,6 +82,7 @@ class BookDownloadPermissionTest extends TestCase
         Requisition::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
 
         $response = $this->actingAs($user)->get("/books/{$book->id}/download");

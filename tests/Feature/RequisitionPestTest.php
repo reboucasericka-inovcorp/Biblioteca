@@ -32,7 +32,7 @@ test('user can create a requisition successfully', function () {
     $this->assertDatabaseHas('requisitions', [
         'user_id' => $user->id,
         'book_id' => $book->id,
-        'status' => Requisition::STATUS_ACTIVE,
+        'status' => Requisition::STATUS_PENDING,
     ]);
 
     // Verificar que o log foi criado
@@ -72,12 +72,14 @@ test('cannot create requisition when book already requested', function () {
     $user2 = User::factory()->create();
     $user2->assignRole('Cidadao');
 
-    $book = Book::factory()->create();
+    $book = Book::factory()->create(['stock' => 5]);
 
-    // Primeira requisição
-    $this->actingAs($user1)->postJson('/api/requisitions', ['book_id' => $book->id]);
+    Requisition::factory()->create([
+        'user_id' => $user1->id,
+        'book_id' => $book->id,
+        'status' => Requisition::STATUS_ACTIVE,
+    ]);
 
-    // Tentativa da segunda requisição
     $response = $this->actingAs($user2)->postJson('/api/requisitions', ['book_id' => $book->id]);
 
     expect($response->status())->toBe(422);
@@ -106,7 +108,59 @@ test('user cannot have more than 3 active requisitions', function () {
     $response = $this->actingAs($user)->postJson('/api/requisitions', ['book_id' => $fourthBook->id]);
 
     expect($response->status())->toBe(422);
-    expect($response->json('message'))->toBe('You already have 3 active requisitions.');
+    expect($response->json('message'))->toBe('You already have 3 requisitions pending or active on loan.');
+});
+
+test('admin can approve a pending requisition', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Cidadao');
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin');
+
+    $book = Book::factory()->create(['stock' => 5]);
+    $requisition = Requisition::factory()->create([
+        'user_id' => $user->id,
+        'book_id' => $book->id,
+        'status' => Requisition::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($admin)->patchJson("/api/requisitions/{$requisition->id}/approve");
+
+    expect($response->status())->toBe(200);
+    expect($response->json('message'))->toBe('Requisition approved.');
+
+    $this->assertDatabaseHas('requisitions', [
+        'id' => $requisition->id,
+        'status' => Requisition::STATUS_ACTIVE,
+    ]);
+    $this->assertDatabaseHas('books', [
+        'id' => $book->id,
+        'stock' => 4,
+    ]);
+});
+
+test('admin can reject a pending requisition', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Cidadao');
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin');
+
+    $book = Book::factory()->create();
+    $requisition = Requisition::factory()->create([
+        'user_id' => $user->id,
+        'book_id' => $book->id,
+        'status' => Requisition::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($admin)->patchJson("/api/requisitions/{$requisition->id}/reject");
+
+    expect($response->status())->toBe(200);
+    expect($response->json('message'))->toBe('Requisition rejected.');
+
+    $this->assertDatabaseHas('requisitions', [
+        'id' => $requisition->id,
+        'status' => Requisition::STATUS_REJECTED,
+    ]);
 });
 
 /**
@@ -120,17 +174,19 @@ test('user can confirm return of a requisition', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin');
 
-    $book = Book::factory()->create();
+    $book = Book::factory()->create(['stock' => 5]);
     $requisition = Requisition::factory()->create([
         'user_id' => $user->id,
         'book_id' => $book->id,
-        'status' => Requisition::STATUS_ACTIVE,
+        'status' => Requisition::STATUS_PENDING,
     ]);
 
-    // Act
+    $this->actingAs($admin)->patchJson("/api/requisitions/{$requisition->id}/approve")->assertOk();
+    $book->refresh();
+    expect((int) $book->stock)->toBe(4);
+
     $response = $this->actingAs($admin)->postJson("/api/requisitions/{$requisition->id}/return");
 
-    // Assert
     expect($response->status())->toBe(200);
     expect($response->json('message'))->toBe('Return confirmed');
 
@@ -139,7 +195,9 @@ test('user can confirm return of a requisition', function () {
         'status' => Requisition::STATUS_RETURNED,
     ]);
 
-    // Verificar que o log foi criado com ação de devolução
+    $book->refresh();
+    expect((int) $book->stock)->toBe(5);
+
     $this->assertDatabaseHas('logs', [
         'user_id' => $admin->id,
         'module' => 'Requisition',

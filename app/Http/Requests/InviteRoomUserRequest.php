@@ -8,7 +8,7 @@ class InviteRoomUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasRole('Admin') ?? false;
+        return (bool) $this->user();
     }
 
     public function rules(): array

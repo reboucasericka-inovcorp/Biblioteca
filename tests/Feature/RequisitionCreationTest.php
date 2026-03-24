@@ -51,7 +51,7 @@ class RequisitionCreationTest extends TestCase
         $this->assertDatabaseHas('requisitions', [
             'user_id' => $user->id,
             'book_id' => $book->id,
-            'status' => Requisition::STATUS_ACTIVE,
+            'status' => Requisition::STATUS_PENDING,
         ]);
 
         Mail::assertSent(\App\Mail\RequisitionCreated::class);
@@ -68,6 +68,7 @@ class RequisitionCreationTest extends TestCase
         Requisition::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
 
         $otherUser = User::factory()->create();
@@ -110,7 +111,7 @@ class RequisitionCreationTest extends TestCase
         ]);
 
         $response->assertStatus(422);
-        $response->assertJson(['message' => 'You already have 3 active requisitions.']);
+        $response->assertJson(['message' => 'You already have 3 requisitions pending or active on loan.']);
 
         $this->assertEquals($countBefore, Requisition::count());
         Mail::assertNotSent(\App\Mail\RequisitionCreated::class);
@@ -125,6 +126,7 @@ class RequisitionCreationTest extends TestCase
         Requisition::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
 
         $otherUser = User::factory()->create();
@@ -172,6 +174,7 @@ class RequisitionCreationTest extends TestCase
         Requisition::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
+            'status' => Requisition::STATUS_ACTIVE,
         ]);
 
         $otherUser = User::factory()->create();

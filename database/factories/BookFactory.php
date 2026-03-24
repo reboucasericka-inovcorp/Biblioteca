@@ -28,7 +28,7 @@ class BookFactory extends Factory
             'isbn_13' => 'ISBN13-' . fake()->unique()->numerify('###############'),
             'price' => fake()->randomFloat(2, 10, 100),
             'discount' => fake()->randomFloat(2, 0, 30),
-            'stock' => fake()->numberBetween(0, 50),
+            'stock' => fake()->numberBetween(1, 50),
             'reserved_stock' => 0,
             'is_active' => true,
             'publisher_id' => $publisher,

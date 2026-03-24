@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Publisher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class PublisherController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('publishers.index');
+        if ($request->user()?->hasRole('Admin')) {
+            return view('publishers.index');
+        }
+
+        return view('publishers.browse');
     }
 
     public function create()

@@ -1,21 +1,22 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\StockReconciliationController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookDownloadController;
 use App\Http\Controllers\CheckoutSuccessController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\MyPurchasesController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PublisherController;
 use App\Http\Controllers\RequisitionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\TestEmail;
-
+use Illuminate\Support\Facades\Route;
 
 // Raiz: sempre página pública. O painel (admin/cidadão) só acessível após login em /dashboard
 Route::get('/', function () {
@@ -34,7 +35,7 @@ Route::view('/cart', 'cart.index')->name('cart.index');
 Route::view('/checkout', 'checkout.index')->name('checkout.index')->middleware('auth');
 Route::get('/checkout/success', [CheckoutSuccessController::class, 'success'])->name('checkout.success');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'update.last.seen'])->group(function () {
     Route::get('/dashboard/citizen', function () {
         return view('dashboard.citizen');
     })->name('dashboard.citizen');
@@ -44,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.admin');
 
     Route::get('/dashboard', function () {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         if ($user->hasRole('Admin')) {
             return redirect()->route('dashboard.admin');
@@ -69,6 +70,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reviews/{review}', [ReviewController::class, 'show'])->name('reviews.show');
         Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
         Route::get('/logs/{log}', [LogController::class, 'show'])->name('logs.show');
+
+        Route::prefix('admin')->group(function () {
+            Route::post('/stock/reconcile', [StockReconciliationController::class, 'reconcile'])
+                ->name('admin.stock.reconcile');
+            Route::post('/stock/rollback', [StockReconciliationController::class, 'rollback'])
+                ->name('admin.stock.rollback');
+            Route::get('/stock/inconsistencies', [StockReconciliationController::class, 'inconsistencies'])
+                ->name('admin.stock.inconsistencies');
+        });
     });
 
     Route::get('/books/{book}/download', [BookDownloadController::class, 'download'])
@@ -84,18 +94,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/requisitions', [RequisitionController::class, 'index'])
         ->name('requisitions.index');
 
+    Route::get('/minhas-compras', [MyPurchasesController::class, 'index'])
+        ->name('purchases.index');
+    Route::get('/minhas-compras/{order}', [MyPurchasesController::class, 'show'])
+        ->name('purchases.show');
+
     Route::view('/chat', 'chat.index')
         ->name('chat.index');
 
-       /* Route::get('/test-email', function () {
+    /* Route::get('/test-email', function () {
 
-            Mail::raw('Email de teste do sistema Biblioteca', function ($message) {
-                $message->to('reboucasericka@gmail.com')
-                        ->subject('Teste de Email Laravel');
-            });
-        
-            return "Email enviado!";
-        });
+         Mail::raw('Email de teste do sistema Biblioteca', function ($message) {
+             $message->to('reboucasericka@gmail.com')
+                     ->subject('Teste de Email Laravel');
+         });
+
+         return "Email enviado!";
+     });
 
     */
 });

@@ -8,12 +8,12 @@ use App\Mail\RequisitionCreated;
 use App\Models\Requisition;
 use App\Models\User;
 use App\Services\BookAvailabilityAlertService;
-use App\Services\LogService;
 use App\Services\RequisitionService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use InvalidArgumentException;
 
 class RequisitionController extends Controller
 {
@@ -22,9 +22,13 @@ class RequisitionController extends Controller
         private readonly BookAvailabilityAlertService $bookAvailabilityAlertService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('requisitions.index');
+        if ($request->user()?->hasRole('Admin')) {
+            return view('requisitions.index');
+        }
+
+        return view('requisitions.mine');
     }
 
     public function store(Request $request)
@@ -54,30 +58,12 @@ class RequisitionController extends Controller
 
     public function confirmReturn(Requisition $requisition)
     {
-        if (! in_array($requisition->status, [
-            Requisition::STATUS_ACTIVE,
-            Requisition::STATUS_LATE,
-        ])) {
-            return ApiResponse::error('Already returned', 422);
+        try {
+            $book = $this->requisitionService->confirmReturn($requisition);
+        } catch (InvalidArgumentException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
         }
 
-        $returnDate = now();
-
-        $requisition->update([
-            'return_date' => $returnDate,
-            'days_elapsed' => $returnDate->diffInDays($requisition->request_date),
-            'status' => Requisition::STATUS_RETURNED,
-        ]);
-
-        // Registar a devolução no log (ação especial, não capturada por observer de update)
-        LogService::record(
-            module: 'Requisition',
-            action: 'returned',
-            objectId: $requisition->id,
-            description: "Requisição devolvida (#{$requisition->sequential_number})"
-        );
-
-        $book = $requisition->book()->first();
         if ($book && $book->isAvailable()) {
             $this->bookAvailabilityAlertService->notifyBookAvailable($book);
         }

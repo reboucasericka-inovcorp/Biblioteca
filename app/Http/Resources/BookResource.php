@@ -105,7 +105,7 @@ class BookResource extends JsonResource
 
         return Requisition::where('book_id', $this->id)
             ->where('user_id', $user->id)
-            ->where('status', Requisition::STATUS_ACTIVE)
+            ->whereIn('status', [Requisition::STATUS_ACTIVE, Requisition::STATUS_LATE])
             ->exists();
     }
 }

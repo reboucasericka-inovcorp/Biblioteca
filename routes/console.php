@@ -17,3 +17,6 @@ Schedule::job(new SendRequisitionReminder)->dailyAt('09:00');
 Schedule::job(new MarkLateRequisitions)->dailyAt('00:30');
 Schedule::job(new SendAbandonedCartEmails)->everyFifteenMinutes();
 Schedule::command('orders:release-expired-reservations')->everyMinute();
+
+// Stock: detetar stock < empréstimos active+late (regista em logs; email opcional via STOCK_INCONSISTENCY_MAIL=true)
+Schedule::command('app:check-stock-consistency')->dailyAt('06:30');

@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Author;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class AuthorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('authors.index');
+        if ($request->user()?->hasRole('Admin')) {
+            return view('authors.index');
+        }
+
+        return view('authors.browse');
     }
 
     public function create()

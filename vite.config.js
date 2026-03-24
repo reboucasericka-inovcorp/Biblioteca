@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
-
 export default defineConfig({
     resolve: {
         alias: {
@@ -17,8 +16,16 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        vue(),
+
+        vue({
+            template: {
+                compilerOptions: {
+                    isCustomElement: (tag) => tag === 'emoji-picker',
+                },
+            },
+        }),
     ],
+
     server: {
         host: '127.0.0.1',
         port: 5173,

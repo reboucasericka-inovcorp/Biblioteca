@@ -95,7 +95,10 @@ class GoogleBooksApiController extends Controller
         }
 
         $book->load(['publisher', 'authors'])
-            ->loadCount(['requisitions as active_requisitions_count' => fn ($q) => $q->where('status', Requisition::STATUS_ACTIVE)]);
+            ->loadCount(['requisitions as active_requisitions_count' => fn ($q) => $q->whereIn('status', [
+                Requisition::STATUS_ACTIVE,
+                Requisition::STATUS_LATE,
+            ])]);
         return ApiResponse::success(
             new BookResource($book),
             'Livro importado com sucesso.',

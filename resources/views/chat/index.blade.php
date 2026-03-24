@@ -5,10 +5,7 @@
         </h2>
     </x-slot>
 
-    <meta name="user-id" content="{{ (int) auth()->id() }}">
-    <meta name="user-name" content="{{ auth()->user()?->name }}">
-    <meta name="user-role" content="{{ auth()->user()?->roles->first()?->name }}">
-    <div id="app" class="h-[90vh] overflow-hidden">
+    <div class="h-[65vh] overflow-hidden">
         <chat-layout></chat-layout>
     </div>
 </x-app-layout>

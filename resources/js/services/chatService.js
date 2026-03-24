@@ -16,12 +16,21 @@ export async function createChatRoom(payload) {
   return response.data?.data;
 }
 
+export async function updateChatRoom(roomId, payload) {
+  const response = await window.axios.put(`/api/chat/rooms/${roomId}`, payload);
+  return response.data?.data;
+}
+
 export async function inviteUserToRoom(roomId, userId) {
-  await window.axios.post(`/api/chat/rooms/${roomId}/invite`, { user_id: userId });
+  await window.axios.post(`/api/chat/rooms/${roomId}/users`, { user_id: userId });
 }
 
 export async function removeUserFromRoom(roomId, userId) {
   await window.axios.delete(`/api/chat/rooms/${roomId}/users/${userId}`);
+}
+
+export async function deleteChatRoom(roomId) {
+  await window.axios.delete(`/api/chat/rooms/${roomId}`);
 }
 
 export async function startDirectConversation(userId) {
@@ -34,6 +43,10 @@ export async function fetchDirectConversation(conversationId) {
   return response.data?.data;
 }
 
+export async function deleteDirectConversation(conversationId) {
+  await window.axios.delete(`/api/chat/conversations/${conversationId}`);
+}
+
 export async function fetchRoomMessages(roomId) {
   const response = await window.axios.get(`/api/chat/rooms/${roomId}/messages`);
   return response.data?.data;
@@ -42,6 +55,15 @@ export async function fetchRoomMessages(roomId) {
 export async function sendChatMessage(payload) {
   const response = await window.axios.post('/api/chat/messages', payload);
   return response.data?.data;
+}
+
+export async function updateChatMessage(messageId, payload) {
+  const response = await window.axios.put(`/api/chat/messages/${messageId}`, payload);
+  return response.data?.data;
+}
+
+export async function deleteChatMessage(messageId) {
+  await window.axios.delete(`/api/chat/messages/${messageId}`);
 }
 
 export async function uploadChatImage(file) {
@@ -57,6 +79,15 @@ export async function uploadChatImage(file) {
 
 export async function markMessagesAsRead(payload) {
   await window.axios.post('/api/chat/messages/read', payload);
+}
+
+export async function fetchChatPresence() {
+  const response = await window.axios.get('/api/chat/presence');
+  return response.data?.data ?? [];
+}
+
+export async function setChatPresenceStatus(status) {
+  await window.axios.post('/api/chat/presence/status', { status });
 }
 
 export function joinChatPresence({ here, joining, leaving } = {}) {

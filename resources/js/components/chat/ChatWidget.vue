@@ -10,6 +10,20 @@
 
 <script setup>
 function openChat() {
-  window.location.href = '/chat';
+  const isOnChatPage = window.location.pathname.startsWith('/chat');
+  if (!isOnChatPage) {
+    window.location.href = '/chat';
+    return;
+  }
+
+  const hasReferrer = !!document.referrer;
+  const sameOriginReferrer = hasReferrer && document.referrer.startsWith(window.location.origin);
+  const referrerPath = sameOriginReferrer ? new URL(document.referrer).pathname : '';
+  if (sameOriginReferrer && !referrerPath.startsWith('/chat')) {
+    window.history.back();
+    return;
+  }
+
+  window.location.href = '/dashboard';
 }
 </script>

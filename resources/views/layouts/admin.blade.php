@@ -5,8 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="user-id" content="{{ (int) auth()->id() }}">
-    <meta name="user-role" content="{{ auth()->user()?->roles->first()?->name }}">
+    <x-layout-user-meta />
 
     <title>{{ config('app.name', 'Laravel') }} - Admin</title>
 
@@ -54,25 +53,7 @@
 
             <!-- MENU -->
             <nav class="flex-1 p-4 space-y-1 text-sm">
-
-                <a href="{{ route('dashboard.admin') }}" class="block px-3 py-2 rounded hover:bg-white/10">Dashboard</a>
-
-                <a href="{{ route('books.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Livros</a>
-
-                <a href="{{ route('authors.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Autores</a>
-
-                <a href="{{ route('publishers.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Editoras</a>
-
-                <a href="{{ route('requisitions.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Requisições</a>
-
-                <a href="{{ route('reviews.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Reviews</a>
-
-                <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Utilizadores</a>
-
-                <a href="{{ route('orders.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Pedidos</a>
-
-                <a href="{{ route('logs.index') }}" class="block px-3 py-2 rounded hover:bg-white/10">Logs</a>
-
+                @include('components.nav.admin-menu', ['itemClass' => 'block px-3 py-2 rounded hover:bg-white/10'])
             </nav>
 
             <!-- AÇÕES -->
@@ -86,7 +67,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-white/10">
+                        class="text-left px-3 py-2 rounded text-red-400 hover:bg-white/10">
                         Sair
                     </button>
                 </form>
@@ -106,14 +87,14 @@
 
             @if(isset($header))
             <div class="px-6 py-4 bg-white border-b border-gray-200">
-                <div class="w-full max-w-none px-8 py-6">
+                <div class="max-w-none px-4 py-4 md:px-6">
                     {{ $header }}
                 </div>
             </div>
             @endif
 
-            <main class="p-6">
-                <div class="w-full max-w-none px-8 py-6">
+            <main class="p-3 md:p-4">
+                <div class="max-w-none px-4 py-4 md:px-6">
                     <div id="app">
                         {{ $slot }}
                     </div>

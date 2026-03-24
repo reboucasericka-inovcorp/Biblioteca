@@ -16,9 +16,14 @@ class RolesSeeder extends Seeder
 
     private const GUARD = 'web';
 
-    public function run(): void
+    /**
+     * Garante que as roles base existem (idempotente).
+     * Usado pelo seeder e pelo registo de utilizadores.
+     */
+    public static function ensureBaseRolesExist(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->forgetCachedPermissions();
 
         foreach (self::ROLES as $name) {
             Role::firstOrCreate(
@@ -28,5 +33,12 @@ class RolesSeeder extends Seeder
                 ]
             );
         }
+
+        $registrar->forgetCachedPermissions();
+    }
+
+    public function run(): void
+    {
+        self::ensureBaseRolesExist();
     }
 }

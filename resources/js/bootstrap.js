@@ -64,6 +64,7 @@ window.removeOnline = function removeOnline(user) {
 if (window.Echo && window.Laravel?.userId) {
     window.Echo.join('chat')
         .here((users) => {
+            window.axios.post('/api/chat/presence/status', { status: 'online' }).catch(() => {});
             const next = {};
             users.forEach((user) => {
                 next[Number(user.id)] = 'online';
@@ -78,3 +79,17 @@ if (window.Echo && window.Laravel?.userId) {
             window.removeOnline(user);
         });
 }
+
+window.addEventListener('beforeunload', () => {
+    if (!window.Laravel?.userId) return;
+    try {
+        if (navigator.sendBeacon) {
+            const blob = new Blob([JSON.stringify({ status: 'offline' })], { type: 'application/json' });
+            navigator.sendBeacon('/api/chat/presence/status', blob);
+            return;
+        }
+        window.axios.post('/api/chat/presence/status', { status: 'offline' }).catch(() => {});
+    } catch (error) {
+        // no-op
+    }
+});

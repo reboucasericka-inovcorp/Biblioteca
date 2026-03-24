@@ -28,9 +28,26 @@
           {{ typingLabel }}
         </div>
       </div>
+      <div class="ml-auto">
+        <button
+          v-if="showRoomSettings"
+          type="button"
+          class="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-50"
+          @click="$emit('open-room-settings')"
+          aria-label="Configurar sala"
+        >
+          ⚙️
+        </button>
+      </div>
     </header>
 
-    <MessageList :messages="messages" :current-user-id="currentUserId" />
+    <MessageList
+      :messages="messages"
+      :current-user-id="currentUserId"
+      :is-admin="isAdmin"
+      @edit-message="$emit('edit-message', $event)"
+      @delete-message="$emit('delete-message', $event)"
+    />
     <MessageInput
       :can-send="canSend"
       @send="$emit('send', $event)"
@@ -55,9 +72,11 @@ const props = defineProps({
   messages: { type: Array, required: true },
   canSend: { type: Boolean, default: false },
   currentUserId: { type: Number, required: true },
+  showRoomSettings: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
 });
 
-defineEmits(['send', 'typing', 'upload-image', 'toggle-sidebar']);
+defineEmits(['send', 'typing', 'upload-image', 'toggle-sidebar', 'open-room-settings', 'edit-message', 'delete-message']);
 
 const avatarText = computed(() => {
   if (!props.title) return '?';

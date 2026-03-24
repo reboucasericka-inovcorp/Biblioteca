@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Exports\BooksExport;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Publisher;
-use App\Exports\BooksExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -14,15 +13,20 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class BookController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('books.index');
+        if ($request->user()?->hasRole('Admin')) {
+            return view('books.index');
+        }
+
+        return view('books.catalog');
     }
 
     public function create()
     {
         $publishers = Publisher::orderBy('name')->get();
         $authors = Author::orderBy('name')->get();
+
         return view('books.create', compact('publishers', 'authors'));
     }
 
@@ -38,6 +42,7 @@ class BookController extends Controller
         $book->load('authors');
         $uploadMax = ini_get('upload_max_filesize');
         $postMax = ini_get('post_max_size');
+
         return view('books.edit', compact('book', 'publishers', 'authors', 'uploadMax', 'postMax'));
     }
 
@@ -105,7 +110,7 @@ class BookController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'isbn' => 'required|string|unique:books,isbn,' . $book->id,
+            'isbn' => 'required|string|unique:books,isbn,'.$book->id,
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0|max:100',
             'stock' => 'nullable|integer|min:0',

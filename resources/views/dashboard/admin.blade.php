@@ -79,9 +79,11 @@
                                 </div>
                                 @php
                                     $statusClass = match ($requisition->status) {
+                                        \App\Models\Requisition::STATUS_PENDING => 'bg-amber-100 text-amber-900',
                                         \App\Models\Requisition::STATUS_RETURNED => 'bg-green-100 text-green-800',
                                         \App\Models\Requisition::STATUS_ACTIVE => 'bg-yellow-100 text-yellow-800',
                                         \App\Models\Requisition::STATUS_LATE => 'bg-red-100 text-red-800',
+                                        \App\Models\Requisition::STATUS_REJECTED => 'bg-gray-200 text-gray-700',
                                         default => 'bg-gray-100 text-gray-800',
                                     };
                                 @endphp
@@ -103,6 +105,8 @@
 
         <!-- COMPONENTES EXISTENTES DO ADMIN -->
         <section class="space-y-6">
+            <admin-stock-tools />
+
             <sales-dashboard />
 
             <admin-suggestions />

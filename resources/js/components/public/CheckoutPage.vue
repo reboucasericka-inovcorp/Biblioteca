@@ -170,6 +170,22 @@
                 </div>
               </div>
               <div>
+                <label for="invoice_email" class="block text-sm font-medium text-gray-700 mb-1">
+                  Email para fatura
+                </label>
+                <input
+                  id="invoice_email"
+                  v-model="invoiceEmail"
+                  type="email"
+                  autocomplete="email"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="email@exemplo.com"
+                />
+                <p v-if="errors.invoice_email" class="mt-1 text-sm text-red-600">
+                  {{ errors.invoice_email }}
+                </p>
+              </div>
+              <div>
                 <label for="shipping_country" class="block text-sm font-medium text-gray-700 mb-1">
                   País
                 </label>
@@ -267,6 +283,8 @@ const step = ref(1);
 const paying = ref(false);
 const error = ref('');
 
+const invoiceEmail = ref('');
+
 const shipping = reactive({
   shipping_address: '',
   shipping_city: '',
@@ -279,6 +297,7 @@ const errors = reactive({
   shipping_city: '',
   shipping_postal_code: '',
   shipping_country: '',
+  invoice_email: '',
 });
 
 const countryOptions = [
@@ -336,6 +355,7 @@ function validateShipping() {
   errors.shipping_city = '';
   errors.shipping_postal_code = '';
   errors.shipping_country = '';
+  errors.invoice_email = '';
 
   if (!shipping.shipping_address?.trim()) {
     errors.shipping_address = 'Morada é obrigatória.';
@@ -352,6 +372,11 @@ function validateShipping() {
   const country = (shipping.shipping_country || '').trim().toUpperCase();
   if (country.length !== 2) {
     errors.shipping_country = 'Selecione o país.';
+    valid = false;
+  }
+  const email = (invoiceEmail.value || '').trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.invoice_email = 'Indique um email válido.';
     valid = false;
   }
   return valid;
@@ -373,6 +398,7 @@ async function pay() {
       shipping_city: shipping.shipping_city.trim(),
       shipping_postal_code: shipping.shipping_postal_code.trim(),
       shipping_country: shipping.shipping_country.trim().toUpperCase(),
+      ...(invoiceEmail.value.trim() ? { invoice_email: invoiceEmail.value.trim() } : {}),
     };
     const res = await window.axios.post('/api/checkout', payload);
     const data = res.data?.data;
@@ -391,5 +417,11 @@ async function pay() {
   }
 }
 
-onMounted(refreshCart);
+onMounted(() => {
+  refreshCart();
+  const meta = document.querySelector('meta[name="user-email"]');
+  if (meta?.content) {
+    invoiceEmail.value = meta.getAttribute('content') || '';
+  }
+});
 </script>

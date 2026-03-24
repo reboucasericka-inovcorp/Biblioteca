@@ -2,12 +2,22 @@
 
 namespace App\Http\Responses;
 
+use App\Services\LogService;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
 {
     public function toResponse($request)
     {
+        if ($user = $request->user()) {
+            LogService::record(
+                module: 'Auth',
+                action: 'login',
+                objectId: $user->id,
+                description: 'Login'
+            );
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['two_factor' => false]);
         }

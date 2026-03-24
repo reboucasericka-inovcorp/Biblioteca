@@ -31,6 +31,7 @@ class CheckoutController extends Controller
             'shipping_city' => 'required|string|max:100',
             'shipping_postal_code' => 'required|string|max:20',
             'shipping_country' => 'required|string|size:2',
+            'invoice_email' => 'nullable|email|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -83,16 +84,21 @@ class CheckoutController extends Controller
         }
 
         $user = $request->user();
+        $invoiceEmail = $request->input('invoice_email') ?: $user?->email;
+        if (! $invoiceEmail || ! filter_var($invoiceEmail, FILTER_VALIDATE_EMAIL)) {
+            return ApiResponse::error('Email para fatura inválido ou em falta.', 400);
+        }
+
         $shipping = [
             'shipping_address' => $request->input('shipping_address'),
             'shipping_city' => $request->input('shipping_city'),
             'shipping_postal_code' => $request->input('shipping_postal_code'),
             'shipping_country' => strtoupper($request->input('shipping_country')),
         ];
-        $order = DB::transaction(function () use ($user, $orderTotal, $validatedLines, $shipping) {
+        $order = DB::transaction(function () use ($user, $orderTotal, $validatedLines, $shipping, $invoiceEmail) {
             $order = Order::create(array_merge([
                 'user_id' => $user?->id,
-                'email' => $user?->email ?? request()->input('email'),
+                'email' => $invoiceEmail,
                 'total' => round($orderTotal, 2),
                 'status' => Order::STATUS_PENDING,
             ], $shipping));
@@ -132,6 +138,7 @@ class CheckoutController extends Controller
             $session = \Stripe\Checkout\Session::create([
                 'line_items' => $lineItems,
                 'mode' => 'payment',
+                'customer_email' => $invoiceEmail,
                 'success_url' => url('/checkout/success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => url('/cart'),
             ]);

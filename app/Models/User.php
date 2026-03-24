@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +21,7 @@ class User extends Authenticatable
 {
     use HasApiTokens;
 
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
 
     use HasProfilePhoto;
@@ -39,6 +40,7 @@ class User extends Authenticatable
         'password',
         'avatar',
         'status',
+        'last_seen_at',
     ];
 
     /**
@@ -72,6 +74,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_seen_at' => 'datetime',
         ];
     }
 
@@ -112,7 +115,9 @@ class User extends Authenticatable
 
     public function chatRooms(): BelongsToMany
     {
-        return $this->belongsToMany(ChatRoom::class, 'chat_room_user')->withTimestamps();
+        return $this->belongsToMany(ChatRoom::class, 'chat_room_user')
+            ->withPivot(['role'])
+            ->withTimestamps();
     }
 
     public function directConversationsAsUserOne(): HasMany
@@ -123,5 +128,17 @@ class User extends Authenticatable
     public function directConversationsAsUserTwo(): HasMany
     {
         return $this->hasMany(DirectConversation::class, 'user_two_id');
+    }
+
+    public function messageReads(): HasMany
+    {
+        return $this->hasMany(MessageRead::class);
+    }
+
+    public function readMessages(): BelongsToMany
+    {
+        return $this->belongsToMany(Message::class, 'message_reads')
+            ->withPivot(['read_at'])
+            ->withTimestamps();
     }
 }

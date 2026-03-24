@@ -28,3 +28,6 @@ use Tests\TestCase;
 uses(TestCase::class, RefreshDatabase::class)
     ->beforeEach(fn () => $this->seed())
     ->in('Feature');
+
+uses(TestCase::class)
+    ->in('Unit');
