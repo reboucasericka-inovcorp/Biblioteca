@@ -44,6 +44,10 @@ Route::middleware(['auth', 'update.last.seen'])->group(function () {
         ->middleware('role:Admin')
         ->name('dashboard.admin');
 
+    Route::view('/admin/suggestions', 'admin.suggestions')
+        ->middleware('role:Admin')
+        ->name('admin.suggestions');
+
     Route::get('/dashboard', function () {
         /** @var User $user */
         $user = Auth::user();

@@ -3,9 +3,7 @@
     <!-- Pesquisa Google Books API: resultados com Requisitar / Sugerir aquisição (a barra compacta no topo da página fica no site-header) -->
     <section class="mb-10">
       <google-books-search :user-is-admin="false" />
-      <p class="mt-4 text-sm text-base-content/80">
-        <a href="/requisitions" class="link link-primary font-medium">Requisições — ver lista e estado dos pedidos</a>
-      </p>
+      
     </section>
 
     <!-- Seções horizontais estilo Netflix / Amazon -->
@@ -121,8 +119,14 @@
       </section>
 
       <section class="space-y-4">
-        <h3 class="text-xl font-bold text-base-content tracking-tight">Minhas requisições</h3>
+       <a href="/requisitions" class="block space-y-4">
+       <h3 class="text-xl font-bold text-base-content tracking-tight">Minhas requisições</h3>
+       
+       </a>
+
         <requisitions-table :user-is-admin="false" />
+
+        
       </section>
     </div>
   </div>
