@@ -21,6 +21,17 @@ return new class extends Migration
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamps();
+
+            // Campos 2FA + perfil/status + last_seen_at
+            // (squashed dos migrations add_two_factor_columns/add_avatar_and_status/add_last_seen_at)
+            // Nota: no SQLite, os ALTERs originais anexaram essas colunas ao final; reproduzimos a mesma ordem.
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
+
+            $table->string('avatar')->nullable();
+            $table->string('status')->default('offline');
+            $table->timestamp('last_seen_at')->nullable()->index();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -16,6 +16,9 @@ return new class extends Migration
              $table->string('name');
              $table->text('notes')->nullable();
              $table->timestamps();
+
+             // Campo squashed do add_logo_to_publishers_table.php
+             $table->string('logo')->nullable();
         });
     }
 

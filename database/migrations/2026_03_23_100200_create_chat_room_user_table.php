@@ -14,7 +14,13 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 
+            // Campo squashed do add_chat_role_to_chat_room_user_table.php
+            $table->string('role', 32)->default('member');
+
             $table->unique(['chat_room_id', 'user_id']);
+
+            // Índice squashed do add_chat_role_to_chat_room_user_table.php
+            $table->index(['chat_room_id', 'role']);
         });
     }
 

@@ -16,6 +16,12 @@ return new class extends Migration
             $table->string('status', 20)->default('pending');
             $table->string('stripe_session_id')->nullable()->unique();
             $table->timestamps();
+
+            // Campos squashed do add_shipping_to_orders_table.php
+            $table->string('shipping_address')->nullable();
+            $table->string('shipping_city')->nullable();
+            $table->string('shipping_postal_code')->nullable();
+            $table->string('shipping_country', 2)->nullable();
         });
     }
 

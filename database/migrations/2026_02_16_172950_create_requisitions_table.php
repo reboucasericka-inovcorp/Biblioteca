@@ -28,9 +28,9 @@ return new class extends Migration
         $table->dateTime('due_date');
         $table->dateTime('return_date')->nullable();
 
-        $table->enum('status', ['active', 'returned', 'late'])
-              ->default('active')
-              ->index();
+        // Squashed do add_pending_rejected_to_requisitions_status.php
+        // (SQLite não suporta ENUM com CHECK de forma consistente; mantemos como string)
+        $table->string('status', 32)->default('active')->index();
 
         $table->integer('days_elapsed')->nullable();
 

@@ -16,6 +16,11 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->string('type')->default('text');
             $table->timestamps();
+
+            // Índices squashed do add_chat_query_indexes_to_messages_table.php
+            $table->index(['messageable_type', 'messageable_id', 'created_at'], 'messages_target_created_at_index');
+            $table->index(['user_id', 'created_at'], 'messages_user_created_at_index');
+            $table->index(['read_at', 'created_at'], 'messages_read_at_created_at_index');
         });
     }
 
