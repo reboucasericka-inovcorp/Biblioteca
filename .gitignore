@@ -9,6 +9,7 @@ Thumbs.db
 .env.*
 !.env.example
 auth.json
+settings.json
 
 # IDE
 .fleet

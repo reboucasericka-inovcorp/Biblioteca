@@ -20,7 +20,7 @@ const reverbHost = import.meta.env.VITE_REVERB_HOST ?? window.location.hostname;
 const reverbPort = Number(import.meta.env.VITE_REVERB_PORT ?? 8080);
 const reverbScheme = import.meta.env.VITE_REVERB_SCHEME ?? 'http';
 
-if (reverbKey) {
+if (false && reverbKey) {
     window.Echo = new Echo({
         broadcaster: 'reverb',
         key: reverbKey,

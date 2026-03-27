@@ -6,6 +6,8 @@
 
     <template v-else-if="book.id">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+
         <!-- Coluna da imagem -->
         <div class="lg:col-span-1 space-y-4">
           <div class="relative bg-base-200 rounded-xl overflow-hidden shadow-lg aspect-[2/3] max-h-[500px]">
@@ -63,6 +65,7 @@
             >
               Adicionar ao carrinho
             </button>
+
             <button
               v-if="isAvailable"
               type="button"
@@ -71,15 +74,20 @@
             >
               Requisitar livro
             </button>
+
             <button
-              type="button"
-              class="btn btn-ghost gap-2"
-              :class="{ 'text-error': isFavorite }"
-              @click="toggleFavorite"
+            v-if="isAvailable"
+            type="button"
+            :class="{ 'text-error': isFavorite }"
+            @click="toggleFavorite"
             >
-              <span class="text-xl">{{ isFavorite ? '♥' : '♡' }}</span>
-              Favoritar
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            Favoritar
             </button>
+
+            
             <template v-if="!book.is_available">
               <span class="badge badge-error badge-lg">Indisponível (requisição)</span>
               <button
@@ -88,7 +96,7 @@
                 class="btn btn-sm btn-ghost"
                 @click="subscribeAvailabilityAlert"
               >
-                🔔 Notificar quando estiver disponível
+                 Notificar quando estiver disponível
               </button>
             </template>
           </div>
@@ -201,6 +209,8 @@ import { unwrap } from '../../api';
 import { CartService } from '../../services/CartService.js';
 import { useCartStore } from '../../stores/cartStore.js';
 import { useFavoritesStore } from '../../stores/favoritesStore.js';
+//import { useFavoritesStore } from '../../stores/favoritesStore';
+
 
 export default {
   props: {
@@ -211,18 +221,16 @@ export default {
     return {
       book: {},
       loading: true,
-      isFavorite: false,
+      
       coverPlaceholder: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect fill='%23e5e7eb' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='14' font-family='sans-serif'%3ESem capa%3C/text%3E%3C/svg%3E",
     };
   },
 
   computed: {
-    authorLabel() {
-      if (this.book.authors?.length) {
-        return this.book.authors.map((a) => a.name).join(', ');
-      }
-      return this.book.author ?? '—';
-    },
+    isFavorite() {
+    const store = useFavoritesStore();
+    return store.isFavorite(Number(this.bookId));
+  },
 
     displayDiscount() {
       const d = this.book.discount;
@@ -335,18 +343,28 @@ export default {
         window.location.href = '/login';
         return;
       }
+
       const store = useFavoritesStore();
+      this.isFavorite = store.isFavorite(Number(this.bookId));
+
       const wasFavorite = this.isFavorite;
+
       const result = wasFavorite
         ? await store.removeFavorite(Number(this.bookId))
-        : await store.addFavorite(Number(this.bookId), this.book);
+        : await store.addFavorite(Number(this.bookId));
+
       if (result?.success) {
+        await store.loadFavorites();
         this.isFavorite = store.isFavorite(Number(this.bookId));
+
         if (window.showToast) {
-          window.showToast(this.isFavorite ? 'Adicionado aos favoritos.' : 'Removido dos favoritos.', 'success');
+          window.showToast(
+            this.isFavorite ? 'Adicionado aos favoritos' : 'Removido dos favoritos',
+            'success'
+          );
         }
       } else {
-        if (window.showToast) window.showToast('Não foi possível atualizar os favoritos.', 'error');
+        if (window.showToast) window.showToast('Erro ao adicionar favorito', 'error');
       }
     },
 

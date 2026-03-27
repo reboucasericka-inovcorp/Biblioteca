@@ -106,10 +106,12 @@ const search = ref('');
 const typingLabel = ref('');
 const typingTimeoutByUser = new Map();
 const onlineByUserId = ref({});
-const localUnreadByKey = ref({});
+const unreadMap = ref({});
+const totalUnread = ref(0);
 const directConversationByPeerId = ref({});
 let userFeedSubscription = null;
 let presenceRefreshIntervalId = null;
+let messageStatusRefreshIntervalId = null;
 const isSidebarOpen = ref(false);
 const notificationAudio = ref(null);
 const isActionLoading = ref(false);
@@ -149,7 +151,7 @@ const conversationItems = computed(() => {
     avatarText: userInitials(user.name),
     preview: user.last_message?.body ?? 'Clique para conversar',
     timeLabel: formatTime(user.last_message?.created_at),
-    unreadCount: Number(user.unread_count ?? 0) + Number(localUnreadByKey.value[`direct-${user.id}`] ?? 0),
+    unreadCount: Number(unreadMap.value[`direct:${user.id}`] ?? 0),
     status: isUserOnline(user) ? 'online' : 'offline',
     avatarUrl: user.avatar ?? '',
   }));
@@ -163,7 +165,7 @@ const conversationItems = computed(() => {
     avatarText: '#',
     preview: room.last_message?.body ?? 'Sala em grupo',
     timeLabel: formatTime(room.last_message?.created_at),
-    unreadCount: Number(room.unread_count ?? 0) + Number(localUnreadByKey.value[`room-${room.id}`] ?? 0),
+    unreadCount: Number(unreadMap.value[`room:${room.id}`] ?? 0),
     status: 'room',
     avatarUrl: room.avatar ?? '',
   }));
@@ -178,10 +180,12 @@ const activeRoomForSettings = computed(() => {
 onMounted(async () => {
   await setChatPresenceOnline();
   await Promise.all([loadUsers(), loadRooms(), loadPresence()]);
+  await loadUnread();
   hydrateOnlineUsersFromGlobal();
   window.addEventListener('chat-presence-updated', handleGlobalPresenceUpdate);
   subscribeToUserFeed();
   presenceRefreshIntervalId = window.setInterval(loadPresence, 30000);
+  messageStatusRefreshIntervalId = window.setInterval(refreshActiveMessagesStatus, 5000);
   window.addEventListener('beforeunload', handleBeforeUnload);
   notificationAudio.value = new Audio('/sounds/notify.mp3');
 });
@@ -193,6 +197,10 @@ onBeforeUnmount(() => {
   if (presenceRefreshIntervalId) {
     window.clearInterval(presenceRefreshIntervalId);
     presenceRefreshIntervalId = null;
+  }
+  if (messageStatusRefreshIntervalId) {
+    window.clearInterval(messageStatusRefreshIntervalId);
+    messageStatusRefreshIntervalId = null;
   }
   window.removeEventListener('beforeunload', handleBeforeUnload);
   void setChatPresenceOffline();
@@ -215,6 +223,51 @@ async function loadPresence() {
     }
     onlineByUserId.value = nextMap;
     refreshActiveStatus();
+  } catch (error) {
+    // fail silently to keep chat usable
+  }
+}
+
+async function loadUnread() {
+  try {
+    const response = await window.axios.get('/api/chat/unread-count');
+    unreadMap.value = response?.data?.conversations ?? {};
+    totalUnread.value = Number(response?.data?.total ?? 0);
+    window.chatUnreadCount = totalUnread.value;
+    window.dispatchEvent(new CustomEvent('chat-unread-updated', { detail: totalUnread.value }));
+  } catch (error) {
+    console.error('Erro unread', error);
+  }
+}
+
+async function refreshActiveMessagesStatus() {
+  if (!activeTarget.value) return;
+
+  try {
+    const data = activeTarget.value.type === 'direct'
+      ? await fetchDirectConversation(activeTarget.value.id)
+      : await fetchRoomMessages(activeTarget.value.id);
+    const latestMessages = data?.messages ?? [];
+    if (!latestMessages.length || !messages.value.length) return;
+
+    const statusById = {};
+    for (const message of latestMessages) {
+      statusById[Number(message.id)] = Boolean(message.is_seen);
+    }
+
+    let changed = false;
+    messages.value = messages.value.map((message) => {
+      const id = Number(message.id);
+      if (!(id in statusById)) return message;
+      const nextSeen = statusById[id];
+      if (Boolean(message.is_seen) === nextSeen) return message;
+      changed = true;
+      return { ...message, is_seen: nextSeen };
+    });
+
+    if (changed) {
+      await loadUnread();
+    }
   } catch (error) {
     // fail silently to keep chat usable
   }
@@ -509,7 +562,7 @@ async function handleUploadImage(file) {
   }
 }
 
-function handleGlobalIncomingMessage(event) {
+async function handleGlobalIncomingMessage(event) {
   const message = event?.message ?? event;
   if (!message?.id) return;
 
@@ -527,13 +580,22 @@ function handleGlobalIncomingMessage(event) {
     if (Number(message.user_id) !== currentUserId) {
       playIncomingSound();
     }
-    incrementUnreadByMessage(targetType, targetId, message);
+    void loadUnread();
     updatePreviewByMessage(targetType, targetId, message);
     return;
   }
 
   if (!messages.value.some((m) => Number(m.id) === Number(message.id))) {
     messages.value.push(message);
+  }
+
+  if (Number(message.user_id) !== currentUserId) {
+    await markMessagesAsRead({
+      target_type: toApiTargetType(activeTarget.value.type),
+      target_id: activeTarget.value.id,
+    });
+    await refreshActiveMessagesStatus();
+    await loadUnread();
   }
 }
 
@@ -548,7 +610,6 @@ function handleTyping() {
 async function afterTargetChange() {
   clearTypingLabel();
   unsubscribeActiveChannel();
-  clearUnreadForActiveConversation();
   subscribeToActiveChannel();
 
   if (!activeTarget.value) return;
@@ -556,6 +617,8 @@ async function afterTargetChange() {
     target_type: toApiTargetType(activeTarget.value.type),
     target_id: activeTarget.value.id,
   });
+  await refreshActiveMessagesStatus();
+  await loadUnread();
 }
 
 function subscribeToActiveChannel() {
@@ -685,16 +748,6 @@ function handleGlobalPresenceUpdate(event) {
   refreshActiveStatus();
 }
 
-function clearUnreadForActiveConversation() {
-  if (!activeTarget.value) return;
-  const key = getConversationKey(activeTarget.value);
-  if (!localUnreadByKey.value[key]) return;
-  localUnreadByKey.value = {
-    ...localUnreadByKey.value,
-    [key]: 0,
-  };
-}
-
 function updateConversationPreview(target, message) {
   if (!target || !message) return;
   if (target.type === 'direct') {
@@ -722,23 +775,6 @@ function updateConversationPreview(target, message) {
       },
     };
   });
-}
-
-function incrementUnreadByMessage(targetType, targetId, message) {
-  if (Number(message.user_id) === currentUserId) return;
-  let key = '';
-  if (targetType === 'room') {
-    key = `room-${targetId}`;
-  } else {
-    const peerUserId = Number(message.user_id);
-    key = `direct-${peerUserId}`;
-  }
-  if (!key) return;
-
-  localUnreadByKey.value = {
-    ...localUnreadByKey.value,
-    [key]: Number(localUnreadByKey.value[key] ?? 0) + 1,
-  };
 }
 
 function updatePreviewByMessage(targetType, targetId, message) {
@@ -772,14 +808,6 @@ function updatePreviewByMessage(targetType, targetId, message) {
       },
     };
   });
-}
-
-function getConversationKey(target) {
-  if (!target) return '';
-  if (target.type === 'direct') {
-    return `direct-${target.peer_user_id ?? target.id}`;
-  }
-  return `room-${target.id}`;
 }
 
 function refreshActiveStatus() {

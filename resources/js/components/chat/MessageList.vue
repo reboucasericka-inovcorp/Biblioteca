@@ -21,7 +21,7 @@
         <div class="group relative max-w-[70%]">
           <div
             class="max-w-full rounded-2xl px-3 py-2 shadow-sm"
-            :class="entry.message.user_id === currentUserId ? 'bg-indigo-500 text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'"
+            :class="bubbleClass(entry.message)"
           >
           <img
             v-if="entry.message.type === 'image'"
@@ -35,6 +35,12 @@
             :class="entry.message.user_id === currentUserId ? 'text-indigo-100' : 'text-gray-400'"
           >
             {{ formatTime(entry.message.created_at) }}
+            <span
+              v-if="entry.message.user_id === currentUserId"
+              class="ml-1"
+            >
+              {{ entry.message.is_seen ? '• visto' : '• enviada' }}
+            </span>
           </div>
           </div>
           <div
@@ -119,10 +125,23 @@ function formatTime(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
+  if (Date.now() - date.getTime() < 60 * 1000) return 'Now';
   return new Intl.DateTimeFormat('pt-PT', {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function bubbleClass(message) {
+  const isOwn = Number(message?.user_id) === Number(props.currentUserId);
+  if (isOwn) {
+    return 'bg-indigo-500 text-white rounded-br-md';
+  }
+
+  const isUnreadIncoming = !message?.is_seen;
+  return isUnreadIncoming
+    ? 'bg-indigo-100 text-indigo-900 rounded-bl-md chat-bubble-new'
+    : 'bg-white text-gray-800 rounded-bl-md';
 }
 
 function formatDateLabel(value) {
@@ -173,5 +192,20 @@ function canManageMessage(message) {
 .message-fade-leave-to {
   opacity: 0;
   transform: translateY(4px);
+}
+
+.chat-bubble-new {
+  animation: chat-bubble-highlight 0.3s ease;
+}
+
+@keyframes chat-bubble-highlight {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

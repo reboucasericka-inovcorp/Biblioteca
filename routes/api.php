@@ -90,6 +90,7 @@ Route::middleware(['auth:sanctum', 'update.last.seen'])->group(function () {
         Route::post('/direct/{user}', [ChatApiController::class, 'startDirect']);
         Route::get('/direct/{conversation}', [ChatApiController::class, 'directMessages']);
         Route::get('/rooms/{room}/messages', [ChatApiController::class, 'roomMessages']);
+        Route::get('/unread-count', [ChatApiController::class, 'unreadCount']);
         Route::post('/messages', [ChatApiController::class, 'storeMessage']);
         Route::put('/messages/{message}', [ChatApiController::class, 'updateMessage']);
         Route::delete('/messages/{message}', [ChatApiController::class, 'destroyMessage']);

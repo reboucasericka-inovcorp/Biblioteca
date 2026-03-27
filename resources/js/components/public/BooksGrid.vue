@@ -188,9 +188,10 @@ async function toggleFavorite(bookId, book = null) {
   const action = wasFavorite ? favoritesStore.removeFavorite(bookId) : favoritesStore.addFavorite(bookId, book);
   const result = await action;
   if (result?.success && window.showToast) {
-    window.showToast(wasFavorite ? 'Removido dos favoritos.' : 'Adicionado aos favoritos.', 'success');
+    await favoritesStore.loadFavorites();
+    window.showToast(wasFavorite ? 'Removido dos favoritos' : 'Adicionado aos favoritos', 'success');
   } else if (!result?.success && window.showToast) {
-    window.showToast('Não foi possível atualizar os favoritos.', 'error');
+    window.showToast(wasFavorite ? 'Erro ao remover favorito' : 'Erro ao adicionar favorito', 'error');
   }
 }
 

@@ -1,5 +1,5 @@
-{{-- Cópia fiel do header original de resources/views/layouts/public.blade.php (commit 8aa14994) --}}
-<!-- TOPO -->
+{{-- NÃO MEXER AQUI POIS É O CABEÇALHO DA PÁGINA --}}
+<!-- TOPO NÃO MEXER AQUI POIS É O CABEÇALHO DA PÁGINA -->
 <div class="w-full bg-[#000020] text-white text-sm">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-2 grid grid-cols-3 items-center gap-4">
         <!-- vazio à esquerda -->
@@ -36,36 +36,37 @@
 <div class="w-full bg-[#000020] text-white">
     <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-6 items-center">
         <!-- esquerda -->
-        {{-- Destino do logo: rota genérica /dashboard redireciona por papel (sem hasRole aqui). --}}
-        <a href="{{ Auth::check() ? route('dashboard') : url('/') }}" class="text-3xl font-bold leading-tight">
+        {{-- Não mexer aqui pois o logo redireciona para a home --}}
+        <a href="{{ url('/') }}" class="text-3xl font-bold leading-tight">
             Inovcorp Library
         </a>
+
+
+        
+
+
         {{-- Mesma pesquisa Google (API) que em Livros / Autores / Editoras — sempre no centro da barra escura --}}
         <header-google-search></header-google-search>
 
+
+
+
        
-        <!-- CONTA + CARRINHO -->
+        <!-- CONTA + CARRINHO NÃO MEXER NADA AQUI MODIFICADO 26/03/2026-->
         <div class="flex items-center justify-end gap-4 text-sm font-medium">
 
             @auth
             @php($user = Auth::user())
 
             {{-- Sair sempre visível para utilizadores autenticados --}}
-            <a href="{{ route('chat.index') }}" class="text-white/90 hover:text-white hover:underline">
-                Chat
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="inline">
-                @csrf
-                <button type="submit" class="text-white/90 hover:text-white hover:underline">
-                    Sair
-                </button>
-            </form>
+           
+            
 
             <div x-data="{ open: false }" class="relative">
 
                 <button
                     type="button"
-                    @click="open = !open"
+                    x-on:click="open = !open"
                     aria-label="Menu do utilizador (Perfil)"
                     class="flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#000020] focus:ring-indigo-500">
                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
@@ -83,8 +84,8 @@
                 <div
                     x-cloak
                     x-show="open"
-                    @click.outside="open = false"
-                    @keydown.escape.window="open = false"
+                    x-on:click.outside="open = false"
+                    x-on:keydown.escape.window="open = false"
                     x-transition.origin.top.right
                     class="absolute right-0 mt-2 z-50 bg-white text-gray-900 rounded-lg shadow-xl ring-1 ring-black/5 min-w-[20rem] w-[22rem]">
 

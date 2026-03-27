@@ -9,18 +9,23 @@ use App\Http\Requests\MarkMessagesReadRequest;
 use App\Http\Requests\StoreChatRoomRequest;
 use App\Http\Requests\StoreMessageRequest;
 use App\Http\Requests\UpdateChatRoomRequest;
+use App\Models\ChatConversationRead;
 use App\Models\ChatRoom;
 use App\Models\DirectConversation;
 use App\Models\Message;
 use App\Models\MessageRead;
 use App\Models\User;
 use App\Support\ApiResponse;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 
 class ChatApiController extends Controller
 {
+    private ?bool $conversationReadsTableAvailable = null;
+
     public function users(Request $request): JsonResponse
     {
         $authUser = $request->user();
@@ -319,6 +324,14 @@ class ChatApiController extends Controller
             return ApiResponse::error('Não autorizado.', 403);
         }
 
+        $conversationKey = $this->conversationKey('direct', (int) $conversation->id);
+        $lastReadMessageId = $this->getEffectiveLastReadMessageId(
+            (int) $user->id,
+            $conversationKey,
+            DirectConversation::class,
+            (int) $conversation->id
+        );
+
         $messages = Message::query()
             ->with('user:id,name,email,avatar,status')
             ->where('messageable_type', DirectConversation::class)
@@ -326,9 +339,14 @@ class ChatApiController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        $latestMessageId = (int) ($messages->last()?->id ?? 0);
+        if ($latestMessageId > 0) {
+            $this->upsertConversationRead((int) $user->id, $conversationKey, $latestMessageId);
+        }
+
         return ApiResponse::success([
             'conversation' => $conversation->load(['userOne:id,name,email,avatar,status', 'userTwo:id,name,email,avatar,status']),
-            'messages' => $messages,
+            'messages' => $this->appendSeenFlag($messages, $lastReadMessageId),
         ]);
     }
 
@@ -340,6 +358,14 @@ class ChatApiController extends Controller
             return ApiResponse::error('Não autorizado.', 403);
         }
 
+        $conversationKey = $this->conversationKey('room', (int) $room->id);
+        $lastReadMessageId = $this->getEffectiveLastReadMessageId(
+            (int) $user->id,
+            $conversationKey,
+            ChatRoom::class,
+            (int) $room->id
+        );
+
         $messages = Message::query()
             ->with('user:id,name,email,avatar,status')
             ->where('messageable_type', ChatRoom::class)
@@ -347,9 +373,14 @@ class ChatApiController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        $latestMessageId = (int) ($messages->last()?->id ?? 0);
+        if ($latestMessageId > 0) {
+            $this->upsertConversationRead((int) $user->id, $conversationKey, $latestMessageId);
+        }
+
         return ApiResponse::success([
             'room' => $room->load(['creator:id,name,email,avatar,status', 'users:id,name,email,avatar,status']),
-            'messages' => $messages,
+            'messages' => $this->appendSeenFlag($messages, $lastReadMessageId),
         ]);
     }
 
@@ -450,7 +481,89 @@ class ChatApiController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => $now]);
 
+        $latestMessageId = (int) (
+            Message::query()
+                ->where('messageable_type', $messageableType)
+                ->where('messageable_id', (int) $validated['target_id'])
+                ->max('id') ?? 0
+        );
+        if ($latestMessageId > 0) {
+            $this->upsertConversationRead(
+                (int) $user->id,
+                $this->conversationKey($validated['target_type'], (int) $validated['target_id']),
+                $latestMessageId
+            );
+        }
+
         return ApiResponse::success(null, 'Mensagens marcadas como lidas.');
+    }
+
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $directConversationIds = DirectConversation::query()
+            ->where('user_one_id', $user->id)
+            ->orWhere('user_two_id', $user->id)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $roomIds = ChatRoom::query()
+            ->whereHas('users', fn ($query) => $query->where('users.id', $user->id))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $readsByConversation = $this->getEffectiveLastReadByConversation(
+            (int) $user->id,
+            DirectConversation::class,
+            $directConversationIds,
+            'direct'
+        );
+        $readsByConversation += $this->getEffectiveLastReadByConversation(
+            (int) $user->id,
+            ChatRoom::class,
+            $roomIds,
+            'room'
+        );
+
+        $counts = [];
+
+        $directMessages = Message::query()
+            ->where('messageable_type', DirectConversation::class)
+            ->whereIn('messageable_id', $directConversationIds)
+            ->where('user_id', '!=', $user->id)
+            ->get(['id', 'messageable_id']);
+        foreach ($directMessages as $message) {
+            $conversationKey = $this->conversationKey('direct', (int) $message->messageable_id);
+            $lastReadMessageId = (int) ($readsByConversation[$conversationKey] ?? 0);
+            if ((int) $message->id <= $lastReadMessageId) {
+                continue;
+            }
+            $counts[$conversationKey] = (int) ($counts[$conversationKey] ?? 0) + 1;
+        }
+
+        $roomMessages = Message::query()
+            ->where('messageable_type', ChatRoom::class)
+            ->whereIn('messageable_id', $roomIds)
+            ->where('user_id', '!=', $user->id)
+            ->get(['id', 'messageable_id']);
+        foreach ($roomMessages as $message) {
+            $conversationKey = $this->conversationKey('room', (int) $message->messageable_id);
+            $lastReadMessageId = (int) ($readsByConversation[$conversationKey] ?? 0);
+            if ((int) $message->id <= $lastReadMessageId) {
+                continue;
+            }
+            $counts[$conversationKey] = (int) ($counts[$conversationKey] ?? 0) + 1;
+        }
+
+        $total = array_sum($counts);
+
+        return ApiResponse::success([
+            'total' => (int) $total,
+            'conversations' => $counts,
+        ]);
     }
 
     public function upload(Request $request): JsonResponse
@@ -525,18 +638,163 @@ class ChatApiController extends Controller
             }
         }
 
-        $unreadByTarget = Message::query()
+        $targetType = $messageableType === ChatRoom::class ? 'room' : 'direct';
+        $conversationKeys = [];
+        foreach ($targetIds as $targetId) {
+            $conversationKeys[(int) $targetId] = $this->conversationKey($targetType, (int) $targetId);
+        }
+
+        $readsByConversation = $this->getEffectiveLastReadByConversation(
+            $authUserId,
+            $messageableType,
+            $targetIds,
+            $targetType
+        );
+
+        $candidateMessages = Message::query()
             ->where('messageable_type', $messageableType)
             ->whereIn('messageable_id', $targetIds)
-            ->when($messageableType === ChatRoom::class, fn ($query) => $query->where('user_id', '!=', $authUserId))
-            ->whereDoesntHave('reads', fn ($q) => $q->where('user_id', $authUserId))
-            ->selectRaw('messageable_id, count(*) as total')
-            ->groupBy('messageable_id')
-            ->pluck('total', 'messageable_id')
-            ->map(fn ($value) => (int) $value)
-            ->toArray();
+            ->where('user_id', '!=', $authUserId)
+            ->get(['id', 'messageable_id']);
+
+        $unreadByTarget = [];
+        foreach ($candidateMessages as $message) {
+            $targetId = (int) $message->messageable_id;
+            $conversationKey = $conversationKeys[$targetId] ?? null;
+            if (! $conversationKey) {
+                continue;
+            }
+            $lastReadMessageId = (int) ($readsByConversation[$conversationKey] ?? 0);
+            if ((int) $message->id <= $lastReadMessageId) {
+                continue;
+            }
+            $unreadByTarget[$targetId] = (int) ($unreadByTarget[$targetId] ?? 0) + 1;
+        }
 
         return [$lastByTarget, $unreadByTarget];
+    }
+
+    private function conversationKey(string $targetType, int $targetId): string
+    {
+        return "{$targetType}:{$targetId}";
+    }
+
+    private function getLastReadMessageId(int $userId, string $conversationKey): int
+    {
+        if (! $this->hasConversationReadsTable()) {
+            return 0;
+        }
+
+        return (int) (ChatConversationRead::query()
+            ->where('user_id', $userId)
+            ->where('conversation_id', $conversationKey)
+            ->value('last_read_message_id') ?? 0);
+    }
+
+    private function getEffectiveLastReadMessageId(
+        int $userId,
+        string $conversationKey,
+        string $messageableType,
+        int $messageableId
+    ): int {
+        $backendLastRead = $this->getLastReadMessageId($userId, $conversationKey);
+        if ($backendLastRead > 0) {
+            return $backendLastRead;
+        }
+
+        $legacyLastRead = MessageRead::query()
+            ->where('user_id', $userId)
+            ->whereHas('message', function ($query) use ($messageableType, $messageableId) {
+                $query->where('messageable_type', $messageableType)
+                    ->where('messageable_id', $messageableId);
+            })
+            ->max('message_id');
+
+        return (int) ($legacyLastRead ?? 0);
+    }
+
+    private function getEffectiveLastReadByConversation(
+        int $userId,
+        string $messageableType,
+        array $targetIds,
+        string $targetType
+    ): array {
+        if (empty($targetIds)) {
+            return [];
+        }
+
+        $conversationKeys = [];
+        foreach ($targetIds as $targetId) {
+            $conversationKeys[(int) $targetId] = $this->conversationKey($targetType, (int) $targetId);
+        }
+
+        $backendReads = [];
+        if ($this->hasConversationReadsTable()) {
+            $backendReads = ChatConversationRead::query()
+                ->where('user_id', $userId)
+                ->whereIn('conversation_id', array_values($conversationKeys))
+                ->pluck('last_read_message_id', 'conversation_id')
+                ->map(fn ($value) => (int) ($value ?? 0))
+                ->toArray();
+        }
+
+        $legacyReads = MessageRead::query()
+            ->join('messages', 'messages.id', '=', 'message_reads.message_id')
+            ->where('message_reads.user_id', $userId)
+            ->where('messages.messageable_type', $messageableType)
+            ->whereIn('messages.messageable_id', $targetIds)
+            ->groupBy('messages.messageable_id')
+            ->selectRaw('messages.messageable_id as target_id, max(message_reads.message_id) as last_read_message_id')
+            ->get();
+
+        foreach ($legacyReads as $legacyRead) {
+            $targetId = (int) $legacyRead->target_id;
+            $conversationKey = $conversationKeys[$targetId] ?? null;
+            if (! $conversationKey) {
+                continue;
+            }
+            if (isset($backendReads[$conversationKey]) && (int) $backendReads[$conversationKey] > 0) {
+                continue;
+            }
+            $backendReads[$conversationKey] = (int) ($legacyRead->last_read_message_id ?? 0);
+        }
+
+        return $backendReads;
+    }
+
+    private function upsertConversationRead(int $userId, string $conversationKey, int $lastReadMessageId): void
+    {
+        if (! $this->hasConversationReadsTable()) {
+            return;
+        }
+
+        ChatConversationRead::query()->updateOrCreate(
+            [
+                'user_id' => $userId,
+                'conversation_id' => $conversationKey,
+            ],
+            [
+                'last_read_message_id' => $lastReadMessageId,
+            ]
+        );
+    }
+
+    private function hasConversationReadsTable(): bool
+    {
+        if ($this->conversationReadsTableAvailable !== null) {
+            return $this->conversationReadsTableAvailable;
+        }
+
+        return $this->conversationReadsTableAvailable = Schema::hasTable('chat_conversation_reads');
+    }
+
+    private function appendSeenFlag(EloquentCollection $messages, int $lastReadMessageId): EloquentCollection
+    {
+        return $messages->map(function (Message $message) use ($lastReadMessageId) {
+            $message->setAttribute('is_seen', (int) $message->id <= $lastReadMessageId);
+
+            return $message;
+        });
     }
 
     private function messagePreview(Message $message): array

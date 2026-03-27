@@ -6,6 +6,9 @@ import { createPinia } from 'pinia';
 import BooksTable from './components/admin/BooksTable.vue';
 
 window.showToast = showToast;
+if (typeof window.chatUnreadCount !== 'number') {
+  window.chatUnreadCount = 0;
+}
 
 /** Preview de imagem em inputs file (usado em formulários Blade; deve estar no window para não ter <script> dentro de #app). */
 window.previewImage = function (input, previewId) {

@@ -13,7 +13,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="font-sans antialiased bg-base-100">
+<body class="font-sans antialiased bg-base-100" data-auth="{{ auth()->check() ? '1' : '0' }}">
 
 <div id="app" data-auth="{{ auth()->check() ? '1' : '0' }}">
     <x-site-header />
@@ -40,6 +40,12 @@
         <div class="md:hidden h-16"></div>
     @endif
 </div>
+<!-- Chat Widget -->
+@if (auth()->check() && ! auth()->user()->hasRole('Admin'))
+    <div id="chat-widget-root">
+        <chat-widget></chat-widget>
+    </div>
+@endif
 
 </body>
 
